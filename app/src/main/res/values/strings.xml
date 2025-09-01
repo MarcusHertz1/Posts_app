@@ -4,4 +4,7 @@
     <string name="icon">Icon</string>
     <string name="description_post_author_avatar">Post author avatar</string>
     <string name="description_post_menu">Post menu</string>
+    <string name="description_post_like">Поставить лайк</string>
+    <string name="description_post_share">Поделиться постом</string>
+    <string name="description_post_views">Просмотры</string>
 </resources>
