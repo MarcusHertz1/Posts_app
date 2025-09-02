@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import ru.netology.nmedia.databinding.ActivityMainBinding
 import ru.netology.nmedia.dto.Post
-import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
 
@@ -20,7 +19,7 @@ class MainActivity : AppCompatActivity() {
             published = "21 мая в 18:36",
             likes = 10,
             likedByMe = false,
-            shares = 1_848,
+            shares = 6399,
             views = 1_000_000
         )
 
@@ -57,18 +56,18 @@ class MainActivity : AppCompatActivity() {
         return when {
             value < 1_000 -> value.toString()
             value < 10_000 -> {
-                val short = value / 1000.0
-                String.format(Locale.US, "%.1fK", short)
+                val thousands = value / 1000
+                val hundreds = (value % 1000) / 100
+                "$thousands.${hundreds}K"
             }
-
             value < 1_000_000 -> {
                 val thousands = value / 1000
                 "${thousands}K"
             }
-
             else -> {
-                val short = value / 1_000_000.0
-                String.format(Locale.US, "%.1fM", short)
+                val millions = value / 1_000_000
+                val hundredThousands = (value % 1_000_000) / 100_000
+                "$millions.${hundredThousands}M"
             }
         }
     }
