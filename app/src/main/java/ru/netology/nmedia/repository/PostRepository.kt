@@ -7,4 +7,5 @@ interface PostRepository {
     fun get(): LiveData<Post>
     fun like()
     fun formatShortNumber(value: Long): String
+    fun share()
 }

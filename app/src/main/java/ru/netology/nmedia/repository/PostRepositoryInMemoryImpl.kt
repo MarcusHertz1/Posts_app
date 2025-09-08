@@ -12,7 +12,7 @@ class PostRepositoryInMemoryImpl : PostRepository {
         published = "21 мая в 18:36",
         likes = 10,
         likedByMe = false,
-        shares = 6399,
+        shares = 63,
         views = 1_000_000
     )
 
@@ -24,6 +24,13 @@ class PostRepositoryInMemoryImpl : PostRepository {
         post = post.copy(
             likedByMe = !post.likedByMe,
             likes = if (post.likedByMe) post.likes - 1 else post.likes + 1
+        )
+        data.value = post
+    }
+
+    override fun share() {
+        post = post.copy(
+            shares = post.shares + 1
         )
         data.value = post
     }

@@ -20,7 +20,12 @@ class MainActivity : AppCompatActivity() {
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            v.setPadding(
+                systemBars.left + binding.main.paddingLeft,
+                systemBars.top + binding.main.paddingTop,
+                systemBars.right + binding.main.paddingRight,
+                systemBars.bottom + binding.main.paddingBottom
+            )
             insets
         }
 
@@ -41,15 +46,15 @@ class MainActivity : AppCompatActivity() {
                     if (post.likedByMe) R.drawable.ic_round_favorite_24
                     else R.drawable.ic_outline_favorite_border_24
                 )
-
-                icShare.setOnClickListener {
-                    post.shares++
-                    tvShare.text = viewModel.formatShortNumber(post.shares)
-                }
             }
         }
+
         binding.icLike.setOnClickListener {
             viewModel.like()
+        }
+
+        binding.icShare.setOnClickListener {
+            viewModel.share()
         }
     }
 }

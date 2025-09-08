@@ -17,7 +17,8 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="@id/barrier"
         app:layout_constraintStart_toStartOf="parent"
-        tools:srcCompat="@sample/posts.json/data/authorAvatar" />
+        tools:srcCompat="@sample/posts.json/data/authorAvatar"
+        android:src="@drawable/ic_netology"/>
 
     <TextView
         android:id="@+id/author"
