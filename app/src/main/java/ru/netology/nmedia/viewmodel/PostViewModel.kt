@@ -8,4 +8,5 @@ class PostViewModel : ViewModel(){
     private val repository: PostRepository = PostRepositoryInMemoryImpl()
     val data = repository.get()
     fun like() = repository.like()
+    fun formatShortNumber(value: Long): String = repository.formatShortNumber(value)
 }

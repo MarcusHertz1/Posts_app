@@ -11,6 +11,8 @@ import ru.netology.nmedia.viewmodel.PostViewModel
 
 class MainActivity : AppCompatActivity() {
 
+    private val viewModel: PostViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val binding = ActivityMainBinding.inflate(layoutInflater)
@@ -22,15 +24,14 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        val viewModel: PostViewModel by viewModels()
         viewModel.data.observe(this) { post ->
             with(binding) {
                 author.text = post.author
                 published.text = post.published
                 content.text = post.content
-                tvLike.text = formatShortNumber(post.likes)
-                tvShare.text = formatShortNumber(post.shares)
-                tvViews.text = formatShortNumber(post.views)
+                tvLike.text = viewModel.formatShortNumber(post.likes)
+                tvShare.text = viewModel.formatShortNumber(post.shares)
+                tvViews.text = viewModel.formatShortNumber(post.views)
 
                 if (post.likedByMe) {
                     icLike.setImageResource(R.drawable.ic_round_favorite_24)
@@ -43,32 +44,12 @@ class MainActivity : AppCompatActivity() {
 
                 icShare.setOnClickListener {
                     post.shares++
-                    tvShare.text = formatShortNumber(post.shares)
+                    tvShare.text = viewModel.formatShortNumber(post.shares)
                 }
             }
         }
         binding.icLike.setOnClickListener {
             viewModel.like()
-        }
-    }
-
-    fun formatShortNumber(value: Long): String {
-        return when {
-            value < 1_000 -> value.toString()
-            value < 10_000 -> {
-                val thousands = value / 1000
-                val hundreds = (value % 1000) / 100
-                "$thousands.${hundreds}K"
-            }
-            value < 1_000_000 -> {
-                val thousands = value / 1000
-                "${thousands}K"
-            }
-            else -> {
-                val millions = value / 1_000_000
-                val hundredThousands = (value % 1_000_000) / 100_000
-                "$millions.${hundredThousands}M"
-            }
         }
     }
 }

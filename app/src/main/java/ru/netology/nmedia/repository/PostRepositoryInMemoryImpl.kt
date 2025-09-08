@@ -12,7 +12,7 @@ class PostRepositoryInMemoryImpl : PostRepository {
         published = "21 мая в 18:36",
         likes = 10,
         likedByMe = false,
-        shares = 998, //6399
+        shares = 6399,
         views = 1_000_000
     )
 
@@ -26,5 +26,25 @@ class PostRepositoryInMemoryImpl : PostRepository {
             likes = if (post.likedByMe) post.likes - 1 else post.likes + 1
         )
         data.value = post
+    }
+
+    override fun formatShortNumber(value: Long): String {
+        return when {
+            value < 1_000 -> value.toString()
+            value < 10_000 -> {
+                val thousands = value / 1000
+                val hundreds = (value % 1000) / 100
+                "$thousands.${hundreds}K"
+            }
+            value < 1_000_000 -> {
+                val thousands = value / 1000
+                "${thousands}K"
+            }
+            else -> {
+                val millions = value / 1_000_000
+                val hundredThousands = (value % 1_000_000) / 100_000
+                "$millions.${hundredThousands}M"
+            }
+        }
     }
 }
