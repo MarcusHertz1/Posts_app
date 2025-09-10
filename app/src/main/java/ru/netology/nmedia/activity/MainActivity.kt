@@ -1,13 +1,16 @@
 package ru.netology.nmedia.activity
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import ru.netology.nmedia.adapter.PostAdapter
 import ru.netology.nmedia.databinding.ActivityMainBinding
 import ru.netology.nmedia.viewmodel.PostViewModel
+import ru.netology.nmedia.R
+import ru.netology.nmedia.adapter.OnInteractionListener
+import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.util.AndroidUtils
 
 class MainActivity : AppCompatActivity() {
 
@@ -18,23 +21,23 @@ class MainActivity : AppCompatActivity() {
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(
-                systemBars.left + binding.main.paddingLeft,
-                systemBars.top + binding.main.paddingTop,
-                systemBars.right + binding.main.paddingRight,
-                systemBars.bottom + binding.main.paddingBottom
-            )
-            insets
-        }
-
         val adapter = PostAdapter(
-            onLikeListener = { post ->
-                viewModel.like(post.id)
-            },
-            onShareListener = { post ->
-                viewModel.share(post.id)
+            object : OnInteractionListener {
+                override fun onEdit(post: Post) {
+                    viewModel.edit(post)
+                }
+
+                override fun onShare(post: Post) {
+                    viewModel.share(post.id)
+                }
+
+                override fun onLike(post: Post) {
+                    viewModel.like(post.id)
+                }
+
+                override fun onRemove(post: Post) {
+                    viewModel.removeById(post.id)
+                }
             },
             formatNumber = { number ->
                 viewModel.formatShortNumber(number)
@@ -44,7 +47,39 @@ class MainActivity : AppCompatActivity() {
         binding.list.adapter = adapter
 
         viewModel.data.observe(this) { posts ->
-            adapter.submitList(posts)
+            val isNew = posts.size != adapter.itemCount
+            adapter.submitList(posts) {
+                if (isNew)
+                    binding.list.smoothScrollToPosition(0)
+            }
+        }
+
+        viewModel.edited.observe(this) { post ->
+            if (post.id != 0L) {
+                with(binding.content) {
+                    AndroidUtils.showKeyboard(this)
+                    setText(post.content)
+                }
+            }
+        }
+
+        with(binding) {
+            save.setOnClickListener {
+                if (content.text.isNullOrBlank()) {
+                    Toast.makeText(
+                        this@MainActivity,
+                        R.string.error_empty_content,
+                        Toast.LENGTH_LONG
+                    ).show()
+                    return@setOnClickListener
+                }
+
+                viewModel.changeContent(content.text.toString())
+                viewModel.save(content.text.toString())
+                content.setText("")
+                content.clearFocus()
+                AndroidUtils.hideKeyboard(it)
+            }
         }
     }
 }

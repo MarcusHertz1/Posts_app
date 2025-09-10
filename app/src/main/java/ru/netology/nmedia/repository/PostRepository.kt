@@ -8,4 +8,6 @@ interface PostRepository {
     fun like(id: Long)
     fun formatShortNumber(value: Long): String
     fun share(id: Long)
+    fun removeById(id: Long)
+    fun save(post: Post)
 }

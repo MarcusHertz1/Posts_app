@@ -7,4 +7,9 @@
     <string name="description_post_like">Поставить лайк</string>
     <string name="description_post_share">Поделиться постом</string>
     <string name="description_post_views">Просмотры</string>
+    <string name="menu_remove">Remove</string>
+    <string name="menu_add">Add</string>
+    <string name="menu_edit">Edit</string>
+    <string name="post_text">Post Text</string>
+    <string name="error_empty_content">Content can\'t be empty</string>
 </resources>
