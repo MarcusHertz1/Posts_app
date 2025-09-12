@@ -13,5 +13,8 @@
     <string name="menu_edit">Изменить</string>
     <string name="post_text">Текст поста</string>
     <string name="error_empty_content">Контент не может быть пустым</string>
+    <string name="cancel">Отмена</string>
+    <string name="edit_post">Изменить пост</string>
+    <string name="edit_icon">Иконка изменить</string>
 
 </resources>

@@ -12,12 +12,27 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintBottom_toTopOf="@id/toolsTop"
+        app:layout_constraintBottom_toTopOf="@id/editBar"
         app:layout_constraintTop_toTopOf="parent"
         tools:listitem="@layout/card_post" />
 
     <androidx.constraintlayout.widget.Barrier
-        android:id="@+id/toolsTop"
+        android:id="@+id/editBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="top"
+        app:constraint_referenced_ids="edit_group" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/edit_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:constraint_referenced_ids="left_icon, title_text, subtitle_text, right_icon"
+        app:layout_constraintBottom_toTopOf="@+id/postBar" />
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/postBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:barrierDirection="top"
@@ -35,17 +50,67 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/save"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/toolsTop" />
+        app:layout_constraintTop_toTopOf="@id/postBar" />
 
     <ImageButton
         android:id="@+id/save"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_height="0dp"
         android:background="@android:color/transparent"
         android:contentDescription="@string/description_post_like"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/content"
+        app:layout_constraintTop_toBottomOf="@+id/list"
         app:srcCompat="@drawable/ic_outline_check_24" />
+
+    <ImageView
+        android:id="@+id/left_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/edit_icon"
+        android:padding="3dp"
+        android:background="@color/white"
+        android:src="@drawable/ic_baseline_edit_24"
+        app:layout_constraintBottom_toTopOf="@id/editBar"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/title_text"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/white"
+        android:text="@string/edit_post"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textAlignment="textStart"
+        app:layout_constraintEnd_toStartOf="@id/right_icon"
+        app:layout_constraintStart_toEndOf="@id/left_icon"
+        app:layout_constraintTop_toTopOf="@+id/left_icon"
+        app:layout_constraintBottom_toTopOf="@+id/subtitle_text"/>
+
+    <TextView
+        android:id="@+id/subtitle_text"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/white"
+        android:textSize="14sp"
+        android:ellipsize="end"
+        android:singleLine="true"
+        app:layout_constraintBottom_toBottomOf="@+id/left_icon"
+        app:layout_constraintEnd_toStartOf="@id/right_icon"
+        app:layout_constraintStart_toEndOf="@id/left_icon"
+        app:layout_constraintTop_toBottomOf="@id/title_text" />
+
+    <ImageButton
+        android:id="@+id/right_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/cancel"
+        android:padding="3dp"
+        android:background="@color/white"
+        android:src="@drawable/ic_outline_cancel_24"
+        app:layout_constraintBottom_toTopOf="@id/edit_group"
+        app:layout_constraintEnd_toEndOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
