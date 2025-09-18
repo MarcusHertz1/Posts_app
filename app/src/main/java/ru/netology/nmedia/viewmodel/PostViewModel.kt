@@ -19,7 +19,7 @@ class PostViewModel : ViewModel() {
     fun changeContent(content: String) {
         val text = content.trim()
         edited.value?.let {
-            if(text == it.content){
+            if (text == it.content) {
                 return@let
             }
             edited.value = it.copy(content = text)
@@ -33,18 +33,24 @@ class PostViewModel : ViewModel() {
         edited.value = empty
     }
 
-    fun edit (post: Post){
-        edited.value = post
+    fun edit(post: Post) {
+        if (post.id == 0L) {
+            edited.value = empty
+        } else {
+            edited.value = post
+        }
+    }
+
+    companion object {
+        val empty = Post(
+            id = 0,
+            author = "",
+            content = "",
+            published = "",
+            likes = 0,
+            likedByMe = false,
+            shares = 0,
+            views = 0
+        )
     }
 }
-
-private val empty = Post(
-    id = 0,
-    author = "",
-    content = "",
-    published = "",
-    likes = 0,
-    likedByMe = false,
-    shares = 0,
-    views = 0
-)

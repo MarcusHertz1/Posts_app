@@ -63,7 +63,20 @@ class MainActivity : AppCompatActivity() {
                     binding.editGroup.visibility = View.VISIBLE
                     binding.subtitleText.text = post.author
                 }
+            } else {
+                // отмена редактирования / закрытие формы
+                with(binding) {
+                    content.setText("")
+                    content.clearFocus()
+                    AndroidUtils.hideKeyboard(root)
+                    editGroup.visibility = View.GONE
+                    subtitleText.text = ""
+                }
             }
+        }
+
+        binding.cancel.setOnClickListener {
+            viewModel.edit(PostViewModel.empty)
         }
 
         with(binding) {
