@@ -54,18 +54,12 @@ class PostViewHolder(
         author.text = post.author
         published.text = post.published
         content.text = post.content
-        tvLike.text = formatNumber(post.likes)
-        tvShare.text = formatNumber(post.shares)
-        tvViews.text = formatNumber(post.views)
-
-        if (post.likedByMe) {
-            icLike.setImageResource(R.drawable.ic_round_favorite_24)
+        icShare.text = formatNumber(post.shares)
+        icViews.text = formatNumber(post.views)
+        icLike.apply {
+            isChecked = post.likedByMe
+            text = formatNumber(post.likes)
         }
-
-        icLike.setImageResource(
-            if (post.likedByMe) R.drawable.ic_round_favorite_24
-            else R.drawable.ic_outline_favorite_border_24
-        )
 
         icLike.setOnClickListener {
             onInteractionListener.onLike(post)

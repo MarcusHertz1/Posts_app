@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Style.LikeCheckBox" parent="Widget.Material3.CompoundButton.CheckBox">
+        <item name="buttonTint">@color/like_color</item>
+    </style>
+
+    <style name="Style.LikeButton" parent="ThemeOverlay.Material3.Button.TextButton">
+        <item name="iconTint">@color/black</item>
+    </style>
+
+    <style name="Style.OtherButton" parent="ThemeOverlay.Material3.Button.TextButton">
+        <item name="iconTint">@color/black</item>
+    </style>
+
+    <style name="Style.MenuButton" parent="Widget.Material3.Button.IconButton">
+        <item name="iconTint">?attr/colorControlNormal</item>
+    </style>
+</resources>
