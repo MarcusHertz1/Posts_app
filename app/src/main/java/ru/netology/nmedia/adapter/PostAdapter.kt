@@ -1,6 +1,5 @@
 package ru.netology.nmedia.adapter
 
-import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,7 +10,6 @@ import androidx.recyclerview.widget.RecyclerView
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
-import androidx.core.net.toUri
 
 typealias FormatNumber = (number: Long) -> String
 
@@ -20,6 +18,7 @@ interface OnInteractionListener{
     fun onRemove (post: Post)
     fun onEdit (post: Post)
     fun onShare (post: Post)
+    fun onPlayVideo (post: Post)
 }
 
 class PostAdapter(
@@ -66,10 +65,7 @@ class PostViewHolder(
 
         videoPreview.visibility = if (post.video != null) View.VISIBLE else View.GONE
         videoPreview.setOnClickListener {
-            post.video?.let { url ->
-                val intent = Intent(Intent.ACTION_VIEW, url.toUri())
-                it.context.startActivity(intent)
-            }
+            onInteractionListener.onPlayVideo(post)
         }
 
         icLike.setOnClickListener {

@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.net.toUri
 import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.PostAdapter
 import ru.netology.nmedia.databinding.ActivityMainBinding
@@ -21,9 +22,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val newPostLauncher = registerForActivityResult(NewPostResultContract()) { content ->
-            content ?: return@registerForActivityResult
-            if (viewModel.edited.value?.id == 0L || viewModel.edited.value == null) {
-                viewModel.edit(PostViewModel.empty)
+            content ?: run {
+                viewModel.clearEdit()
+                return@registerForActivityResult
             }
             viewModel.changeContent(content)
             viewModel.save()
@@ -55,6 +56,13 @@ class MainActivity : AppCompatActivity() {
 
                 override fun onRemove(post: Post) {
                     viewModel.removeById(post.id)
+                }
+
+                override fun onPlayVideo(post: Post) {
+                    post.video?.let { url ->
+                        val intent = Intent(Intent.ACTION_VIEW, url.toUri())
+                        startActivity(intent)
+                    }
                 }
             },
             formatNumber = { number ->

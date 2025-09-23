@@ -41,6 +41,10 @@ class PostViewModel : ViewModel() {
         }
     }
 
+    fun clearEdit() {
+        edited.value = empty
+    }
+
     companion object {
         val empty = Post(
             id = 0,
