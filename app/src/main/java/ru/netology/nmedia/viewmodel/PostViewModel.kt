@@ -50,7 +50,8 @@ class PostViewModel : ViewModel() {
             likes = 0,
             likedByMe = false,
             shares = 0,
-            views = 0
+            views = 0,
+            video = null
         )
     }
 }

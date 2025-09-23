@@ -80,6 +80,55 @@
         app:layout_constraintTop_toBottomOf="@id/barrier"
         tools:text="@sample/posts.json/data/content" />
 
+    <FrameLayout
+        android:id="@+id/video_preview"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginTop="16dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/content">
+
+        <ImageView
+            android:id="@+id/iv_video_preview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/video_preview"
+            android:paddingTop="10dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_video_preview" />
+
+        <ImageButton
+            android:id="@+id/ib_video_preview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/play"
+            android:src="@drawable/ic_baseline_play_arrow_24" />
+
+        <TextView
+            android:id="@+id/tv_video_preview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|start"
+            android:background="#80000000"
+            android:padding="4dp"
+            android:text="@string/video"
+            android:textColor="@android:color/white" />
+
+    </FrameLayout>
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barrier2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="bottom"
+        app:constraint_referenced_ids="video_preview"
+        />
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/ic_like"
         android:layout_width="wrap_content"
@@ -91,8 +140,8 @@
         tools:text="15"
         android:textColor="@color/black"
         android:background="@android:color/transparent"
-        app:layout_constraintStart_toStartOf="@+id/content"
-        app:layout_constraintTop_toBottomOf="@+id/content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/barrier2"
         />
 
     <com.google.android.material.button.MaterialButton
@@ -121,8 +170,8 @@
         tools:text="5"
         android:textColor="@color/black"
         android:background="@android:color/transparent"
-        app:layout_constraintEnd_toEndOf="@+id/content"
-        app:layout_constraintTop_toBottomOf="@+id/content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/barrier2"
         />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

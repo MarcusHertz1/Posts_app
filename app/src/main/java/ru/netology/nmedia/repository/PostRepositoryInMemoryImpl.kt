@@ -17,7 +17,8 @@ class PostRepositoryInMemoryImpl : PostRepository {
             likes = 90,
             likedByMe = false,
             shares = 5,
-            views = 95
+            views = 95,
+            video = "https://rutube.ru/video/6550a91e7e523f9503bed47e4c46d0cb"
         ),
         Post(
             id = index++,

@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
 
         val newPostLauncher = registerForActivityResult(NewPostResultContract()) { content ->
             content ?: return@registerForActivityResult
-            if (viewModel.edited.value?.id == 0L) {
+            if (viewModel.edited.value?.id == 0L || viewModel.edited.value == null) {
                 viewModel.edit(PostViewModel.empty)
             }
             viewModel.changeContent(content)

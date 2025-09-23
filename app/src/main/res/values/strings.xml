@@ -16,4 +16,7 @@
     <string name="cancel">Cancel</string>
     <string name="edit_post">Edit post</string>
     <string name="edit_icon">Edit icon</string>
+    <string name="video_preview">Video preview</string>
+    <string name="play">Play</string>
+    <string name="video">Video</string>
 </resources>
