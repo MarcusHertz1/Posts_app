@@ -26,7 +26,7 @@ class PostViewModel : ViewModel() {
         }
     }
 
-    fun save(content: String) {
+    fun save() {
         edited.value?.let {
             repository.save(it)
         }

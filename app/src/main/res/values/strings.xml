@@ -7,6 +7,7 @@
     <string name="description_post_like">Поставить лайк</string>
     <string name="description_post_share">Поделиться постом</string>
     <string name="description_post_views">Просмотры</string>
+    <string name="description_post_save">Save</string>
     <string name="menu_remove">Remove</string>
     <string name="menu_add">Add</string>
     <string name="menu_edit">Edit</string>

@@ -15,4 +15,9 @@
     <style name="Style.MenuButton" parent="Widget.Material3.Button.IconButton">
         <item name="iconTint">?attr/colorControlNormal</item>
     </style>
+
+    <style name="CircleShape" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
 </resources>
