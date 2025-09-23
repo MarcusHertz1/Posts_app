@@ -3,13 +3,16 @@ package ru.netology.nmedia.activity
 import android.content.Context
 import android.content.Intent
 import androidx.activity.result.contract.ActivityResultContract
+import ru.netology.nmedia.dto.Post
 
-class NewPostResultContract: ActivityResultContract <Unit, String?>() {
+class NewPostResultContract: ActivityResultContract <Post?, String?>() {
     override fun createIntent(
         context: Context,
-        input: Unit
+        input: Post?
     ): Intent {
-        return Intent(context, NewPostActivity::class.java)
+        return Intent(context, NewPostActivity::class.java).apply {
+            putExtra("content", input?.content ?: "")
+        }
     }
 
     override fun parseResult(
