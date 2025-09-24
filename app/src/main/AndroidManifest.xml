@@ -12,10 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.M6l2t1">
         <activity
-            android:name=".activity.NewPostActivity"
-            android:exported="false" />
-        <activity
-            android:name=".activity.IntentHandlerActivity"
+            android:name=".activity.AppActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
@@ -24,10 +21,6 @@
 
                 <data android:mimeType="text/plain" />
             </intent-filter>
-        </activity>
-        <activity
-            android:name=".activity.MainActivity"
-            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

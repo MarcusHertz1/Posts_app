@@ -20,5 +20,6 @@
     <string name="video_preview">Видео превью</string>
     <string name="play">Воспроизвести</string>
     <string name="video">Видео</string>
+    <string name="add_post">Добавить пост</string>
 
 </resources>
