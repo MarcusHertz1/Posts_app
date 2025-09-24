@@ -1,5 +1,6 @@
 package ru.netology.nmedia.adapter
 
+import android.R.attr.author
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -53,7 +54,7 @@ class PostViewHolder(
     private val onInteractionListener: OnInteractionListener,
     private val formatNumber: FormatNumber,
 ) : RecyclerView.ViewHolder(binding.root) {
-    fun bind(post: Post) = with(binding) {
+    fun bind(post: Post) = binding.apply {
         author.text = post.author
         published.text = post.published
         content.text = post.content

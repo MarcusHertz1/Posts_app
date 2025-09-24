@@ -21,7 +21,6 @@ import ru.netology.nmedia.viewmodel.PostViewModel
 class PostFragment : Fragment() {
 
     private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireParentFragment)
-    private lateinit var holder: PostViewHolder
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -69,7 +68,7 @@ class PostFragment : Fragment() {
             }
         }
 
-        holder = PostViewHolder(binding.singlePost, listener, viewModel::formatShortNumber)
+        val holder = PostViewHolder(binding.singlePost, listener, viewModel::formatShortNumber)
 
         viewModel.data.observe(viewLifecycleOwner) { posts ->
             val post = posts.find { it.id == postId } ?: return@observe
