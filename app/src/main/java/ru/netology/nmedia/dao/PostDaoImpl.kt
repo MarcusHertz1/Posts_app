@@ -14,7 +14,10 @@ class PostDaoImpl(private val db: SQLiteDatabase) : PostDao {
             ${PostColumns.COLUMN_CONTENT} TEXT NOT NULL,
             ${PostColumns.COLUMN_PUBLISHED} TEXT NOT NULL,
             ${PostColumns.COLUMN_LIKED_BY_ME} BOOLEAN NOT NULL DEFAULT 0,
-            ${PostColumns.COLUMN_LIKES} INTEGER NOT NULL DEFAULT 0
+            ${PostColumns.COLUMN_LIKES} INTEGER NOT NULL DEFAULT 0,
+            ${PostColumns.COLUMN_SHARES} INTEGER NOT NULL DEFAULT 0,
+            ${PostColumns.COLUMN_VIEW} INTEGER NOT NULL DEFAULT 0,
+            ${PostColumns.COLUMN_VIDEO} TEXT
         );
         """.trimIndent()
     }
@@ -36,7 +39,10 @@ class PostDaoImpl(private val db: SQLiteDatabase) : PostDao {
             COLUMN_CONTENT,
             COLUMN_PUBLISHED,
             COLUMN_LIKED_BY_ME,
-            COLUMN_LIKES
+            COLUMN_LIKES,
+            COLUMN_SHARES,
+            COLUMN_VIEW,
+            COLUMN_VIDEO
         )
     }
 
@@ -60,10 +66,14 @@ class PostDaoImpl(private val db: SQLiteDatabase) : PostDao {
 
     override fun save(post: Post): Post {
         val values = ContentValues().apply {
-            // TODO: remove hardcoded values
             put(PostColumns.COLUMN_AUTHOR, "Me")
             put(PostColumns.COLUMN_CONTENT, post.content)
             put(PostColumns.COLUMN_PUBLISHED, "now")
+            put(PostColumns.COLUMN_LIKED_BY_ME, if (post.likedByMe) 1 else 0)
+            put(PostColumns.COLUMN_LIKES, post.likes)
+            put(PostColumns.COLUMN_SHARES, post.shares)
+            put(PostColumns.COLUMN_VIEW, post.views)
+            put(PostColumns.COLUMN_VIDEO, post.video)
         }
         val id = if (post.id != 0L) {
             db.update(
@@ -96,6 +106,16 @@ class PostDaoImpl(private val db: SQLiteDatabase) : PostDao {
            UPDATE posts SET
                likes = likes + CASE WHEN likedByMe THEN -1 ELSE 1 END,
                likedByMe = CASE WHEN likedByMe THEN 0 ELSE 1 END
+           WHERE id = ?;
+        """.trimIndent(), arrayOf(id)
+        )
+    }
+
+    override fun shareById(id: Long) {
+        db.execSQL(
+            """
+           UPDATE posts SET
+               shares = shares + 1
            WHERE id = ?;
         """.trimIndent(), arrayOf(id)
         )

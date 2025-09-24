@@ -17,16 +17,34 @@ class PostRepositorySQLiteImpl(
     }
 
     override fun getAll(): LiveData<List<Post>> = data
-/*    override fun like(id: Long) {
-        TODO("Not yet implemented")
-    }*/
-
     override fun formatShortNumber(value: Long): String {
-        TODO("Not yet implemented")
+        return when {
+            value < 1_000 -> value.toString()
+            value < 10_000 -> {
+                val thousands = value / 1000
+                val hundreds = (value % 1000) / 100
+                "$thousands.${hundreds}K"
+            }
+
+            value < 1_000_000 -> {
+                val thousands = value / 1000
+                "${thousands}K"
+            }
+
+            else -> {
+                val millions = value / 1_000_000
+                val hundredThousands = (value % 1_000_000) / 100_000
+                "$millions.${hundredThousands}M"
+            }
+        }
     }
 
     override fun share(id: Long) {
-        TODO("Not yet implemented")
+        dao.shareById(id)
+        posts = posts.map {
+            if (it.id != id) it else it.copy(shares = it.shares + 1)
+        }
+        data.value = posts
     }
 
     override fun save(post: Post) {

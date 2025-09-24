@@ -22,7 +22,7 @@ class AppDb private constructor(db: SQLiteDatabase) {
         }
 
         private fun buildDatabase(context: Context, DDLs: Array<String>) = DbHelper(
-            context, 1, "app.db", DDLs,
+            context, 2, "app.db", DDLs,
         ).writableDatabase
     }
 }
