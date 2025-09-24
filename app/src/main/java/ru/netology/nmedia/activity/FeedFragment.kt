@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import ru.netology.nmedia.R
+import ru.netology.nmedia.activity.PostFragment.Companion.postId
 import ru.netology.nmedia.adapter.PostAdapter
 import ru.netology.nmedia.viewmodel.PostViewModel
 import ru.netology.nmedia.adapter.OnInteractionListener
@@ -63,6 +64,13 @@ class FeedFragment : Fragment() {
                         val intent = Intent(Intent.ACTION_VIEW, url.toUri())
                         startActivity(intent)
                     }
+                }
+
+                override fun onPostClick(post: Post) {
+                    findNavController().navigate(R.id.action_feedFragment_to_postFragment,
+                        Bundle().apply {
+                            postId = post.id
+                        })
                 }
             },
             formatNumber = { number ->

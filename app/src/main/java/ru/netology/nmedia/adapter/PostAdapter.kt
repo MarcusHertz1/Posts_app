@@ -19,6 +19,7 @@ interface OnInteractionListener{
     fun onEdit (post: Post)
     fun onShare (post: Post)
     fun onPlayVideo (post: Post)
+    fun onPostClick (post: Post)
 }
 
 class PostAdapter(
@@ -66,6 +67,10 @@ class PostViewHolder(
         videoPreview.visibility = if (post.video != null) View.VISIBLE else View.GONE
         videoPreview.setOnClickListener {
             onInteractionListener.onPlayVideo(post)
+        }
+
+        content.setOnClickListener {
+            onInteractionListener.onPostClick(post)
         }
 
         icLike.setOnClickListener {
