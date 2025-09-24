@@ -10,12 +10,12 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import ru.netology.nmedia.R
-import ru.netology.nmedia.activity.PostFragment.Companion.postId
 import ru.netology.nmedia.adapter.PostAdapter
 import ru.netology.nmedia.viewmodel.PostViewModel
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.util.LongArg
 import ru.netology.nmedia.util.StringsArg
 
 class FeedFragment : Fragment() {
@@ -34,6 +34,7 @@ class FeedFragment : Fragment() {
                     viewModel.edit(post)
                     findNavController().navigate(R.id.action_feedFragment_to_newPostFragment,
                         Bundle().apply {
+                            postId = post.id
                             textArgs = post.content
                         })
                 }
@@ -98,5 +99,6 @@ class FeedFragment : Fragment() {
 
     companion object{
         var Bundle.textArgs by StringsArg
+        var Bundle.postId by LongArg
     }
 }
