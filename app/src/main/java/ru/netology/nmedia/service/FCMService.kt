@@ -38,9 +38,13 @@ class FCMService : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
-        message.data[action]?.let {
-            when (Action.valueOf(it)) {
-                Action.LIKE -> handleLike(gson.fromJson(message.data[content], Like::class.java))
+        message.data[action]?.let { actionValue ->
+            try {
+                when (Action.valueOf(actionValue)) {
+                    Action.LIKE -> handleLike(gson.fromJson(message.data[content], Like::class.java))
+                }
+            } catch (e: IllegalArgumentException) {
+                Log.w("FCMService", "Unknown action: $actionValue", e)
             }
         }
     }
