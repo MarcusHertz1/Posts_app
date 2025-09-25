@@ -21,5 +21,9 @@
     <string name="play">Воспроизвести</string>
     <string name="video">Видео</string>
     <string name="add_post">Добавить пост</string>
+    <string name="google_api_unavailable">Google Api Недоступно</string>
+    <string name="channel_remote_name">Уведомления с сервера</string>
+    <string name="channel_remote_description">Уведомления с удалённого сервера</string>
+    <string name="notification_user_liked">%1$s поставил лайк посту %2$s</string>
 
 </resources>

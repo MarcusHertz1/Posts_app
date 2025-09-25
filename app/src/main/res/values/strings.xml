@@ -20,4 +20,8 @@
     <string name="play">Play</string>
     <string name="video">Video</string>
     <string name="add_post">Add post</string>
+    <string name="google_api_unavailable">Google Api Unavailable</string>
+    <string name="channel_remote_name">Server notifications</string>
+    <string name="channel_remote_description">Notifications from remote server</string>
+    <string name="notification_user_liked">User %1$s liked %2$s\\\'s post</string>
 </resources>
