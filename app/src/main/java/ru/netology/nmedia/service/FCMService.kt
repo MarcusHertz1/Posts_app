@@ -42,6 +42,7 @@ class FCMService : FirebaseMessagingService() {
             try {
                 when (Action.valueOf(actionValue)) {
                     Action.LIKE -> handleLike(gson.fromJson(message.data[content], Like::class.java))
+                    Action.POST -> handleNewPost(gson.fromJson(message.data[content], NewPost::class.java))
                 }
             } catch (e: IllegalArgumentException) {
                 Log.w("FCMService", "Unknown action: $actionValue", e)
@@ -70,6 +71,17 @@ class FCMService : FirebaseMessagingService() {
         notify(notification)
     }
 
+    private fun handleNewPost(content: NewPost) {
+        val notification = NotificationCompat.Builder(this, channelId)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(getString(R.string.notification_new_post, content.userName))
+            .setStyle(NotificationCompat.BigTextStyle().bigText(content.postContent))
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .build()
+
+        notify(notification)
+    }
+
     private fun notify(notification: Notification) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
             checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
@@ -81,6 +93,7 @@ class FCMService : FirebaseMessagingService() {
 
 enum class Action {
     LIKE,
+    POST,
 }
 
 data class Like(
@@ -88,4 +101,9 @@ data class Like(
     val userName: String,
     val postId: Long,
     val postAuthor: String,
+)
+
+data class NewPost(
+    val userName: String,
+    val postContent: String,
 )
