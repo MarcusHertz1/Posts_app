@@ -29,13 +29,12 @@ class PostFragment : Fragment() {
     ): View {
         val binding = FragmentPostBinding.inflate(layoutInflater, container, false)
 
-        val postId = arguments?.postId ?: throw IllegalArgumentException("Post ID is required")
-
         val listener = object : OnInteractionListener {
             override fun onEdit(post: Post) {
                 viewModel.edit(post)
                 findNavController().navigate(R.id.action_postFragment_to_newPostFragment,
                     Bundle().apply {
+                        postId = post.id
                         textArgs = post.content
                     })
             }
@@ -71,6 +70,7 @@ class PostFragment : Fragment() {
         val holder = PostViewHolder(binding.singlePost, listener, viewModel::formatShortNumber)
 
         viewModel.data.observe(viewLifecycleOwner) { posts ->
+            val postId = arguments?.postId ?: throw IllegalArgumentException("Post ID is required")
             val post = posts.find { it.id == postId } ?: return@observe
             holder.bind(post)
         }
