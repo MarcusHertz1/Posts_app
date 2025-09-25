@@ -5,7 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import ru.netology.nmedia.dao.PostDao
 import ru.netology.nmedia.dto.Post
 
-class PostRepositorySQLiteImpl(
+/*class PostRepositorySQLiteImpl(
     private val dao: PostDao
 ) : PostRepository {
     private var posts = emptyList<Post>()
@@ -76,4 +76,4 @@ class PostRepositorySQLiteImpl(
         posts = posts.filter { it.id != id }
         data.value = posts
     }
-}
+}*/

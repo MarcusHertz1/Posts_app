@@ -8,11 +8,11 @@ import androidx.lifecycle.MutableLiveData
 import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.repository.PostRepository
-import ru.netology.nmedia.repository.PostRepositorySQLiteImpl
+import ru.netology.nmedia.repository.PostRepositoryImpl
 
 class PostViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository: PostRepository = PostRepositorySQLiteImpl(
-        AppDb.getInstance(application).postDao
+    private val repository: PostRepository = PostRepositoryImpl(
+        AppDb.getInstance(application).postDao()
     )
     private val prefs = application.getSharedPreferences("draft", Context.MODE_PRIVATE)
     val data = repository.getAll()
