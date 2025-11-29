@@ -1,24 +1,39 @@
 package ru.netology.nmedia.repository
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
-import ru.netology.nmedia.dao.PostDao
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import ru.netology.nmedia.dto.Post
-import ru.netology.nmedia.entity.toEntity
+import java.lang.reflect.Type
+import java.util.concurrent.TimeUnit
 
-class PostRepositoryImpl(
-    private val dao: PostDao
-): PostRepository {
-    override fun getAll(): LiveData<List<Post>> {
-        return dao.getAll().map { list ->
-            list.map{
-                it.toDto()
-            }
-        }
+class PostRepositoryImpl: PostRepository {
+    private val okHttpClient = OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).build()
+
+    private val gson = Gson()
+
+    private companion object{
+        const val BASE_URL = "http://10.0.2.2:9999"
+        val jsonType = "application/json".toMediaType()
+        val postsType: Type = object : TypeToken<List<Post>>() {}.type
+    }
+
+    override fun getAll(): List<Post> {
+        val request = Request.Builder()
+            .url("${BASE_URL}/api/slow/posts")
+            .build()
+
+        val call = okHttpClient.newCall(request)
+        val response = call.execute()
+        val stringResponse = response.body.string()
+        return gson.fromJson(stringResponse, postsType)
     }
 
     override fun like(id: Long) {
-        dao.likeById(id)
+        //dao.likeById(id)
     }
 
     override fun formatShortNumber(value: Long): String {
@@ -44,14 +59,24 @@ class PostRepositoryImpl(
     }
 
     override fun share(id: Long) {
-        dao.shareById(id)
+        //dao.shareById(id)
     }
 
     override fun removeById(id: Long) {
-        dao.removeById(id)
+        //dao.removeById(id)
     }
 
-    override fun save(post: Post) {
-        dao.save(post.toEntity())
+    override fun save(post: Post): Post {
+        val request = Request.Builder()
+            .url("${BASE_URL}/api/slow/posts")
+            .post(gson.toJson(post).toRequestBody(jsonType))
+            .build()
+
+        val call = okHttpClient.newCall(request)
+        val response = call.execute()
+        val stringResponse = response.body.string()
+        return gson.fromJson(stringResponse, Post::class.java)
+
+        //dao.save(post.toEntity())
     }
 }

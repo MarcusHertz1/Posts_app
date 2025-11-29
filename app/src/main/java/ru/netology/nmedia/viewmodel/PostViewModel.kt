@@ -4,24 +4,48 @@ import android.app.Application
 import android.content.Context
 import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.repository.PostRepositoryImpl
+import ru.netology.nmedia.util.SingleLiveEvent
+import kotlin.concurrent.thread
 
 class PostViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository: PostRepository = PostRepositoryImpl(
-        AppDb.getInstance(application).postDao()
-    )
+    private val repository: PostRepository = PostRepositoryImpl()
+    private val _data = MutableLiveData(FeedModel())
     private val prefs = application.getSharedPreferences("draft", Context.MODE_PRIVATE)
-    val data = repository.getAll()
+    val data : LiveData<FeedModel>
+        get() = _data
+
+    init {
+        loadPosts()
+    }
+
+    fun loadPosts() {
+        thread {
+            _data.postValue(FeedModel(loading = true))
+
+            try {
+                val posts = repository.getAll()
+                FeedModel(posts = posts, empty = posts.isEmpty())
+            } catch (_: Exception) {
+                FeedModel(error = true)
+            }.let(_data::postValue)
+        }
+    }
     val draft = MutableLiveData<String?>(prefs.getString("draft", null))
     fun like(id: Long) = repository.like(id)
     fun share(id: Long) = repository.share(id)
     fun formatShortNumber(value: Long): String = repository.formatShortNumber(value)
     fun removeById(id: Long) = repository.removeById(id)
     val edited = MutableLiveData(empty)
+
+    private val _postCreated = SingleLiveEvent<Unit>()
+    val postCreated : LiveData<Unit>
+        get() = _postCreated
 
     val empty get() = PostViewModel.empty
 
@@ -41,14 +65,18 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun save() {
-        edited.value?.let {
-            repository.save(it)
-            if (it.id == 0L) {
-                draft.value = null
-                prefs.edit { remove("draft") }
+        thread {
+            edited.value?.let {
+                repository.save(it)
+                if (it.id == 0L) {
+                    draft.postValue(null)
+                    prefs.edit { remove("draft") }
+                    loadPosts()
+                    _postCreated.postValue(Unit)
+                }
             }
+            edited.postValue(empty)
         }
-        edited.value = empty
     }
 
     fun edit(post: Post) {
