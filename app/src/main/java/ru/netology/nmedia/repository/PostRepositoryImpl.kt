@@ -33,10 +33,8 @@ class PostRepositoryImpl: PostRepository {
     }
 
     override fun like(id: Long) {
-        // Получаем текущий пост, чтобы узнать его состояние (likedByMe)
         val post = getById(id)
-        
-        // Если пост уже лайкнут - снимаем лайк (DELETE), иначе ставим лайк (POST)
+
         val request = if (post.likedByMe) {
             Request.Builder()
                 .url("${BASE_URL}/api/slow/posts/$id/likes")
@@ -104,7 +102,5 @@ class PostRepositoryImpl: PostRepository {
         val response = call.execute()
         val stringResponse = response.body.string()
         return gson.fromJson(stringResponse, Post::class.java)
-
-        //dao.save(post.toEntity())
     }
 }

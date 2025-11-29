@@ -90,24 +90,19 @@ class FeedFragment : Fragment() {
 
         viewModel.data.observe(viewLifecycleOwner) { state ->
             adapter.submitList(state.posts)
-            binding.progress.isVisible = state.loading
+            //binding.progress.isVisible = state.loading
             binding.empty.isVisible = state.empty
             errorMergeBinding.errorGroup.isVisible = state.error
+            binding.swipeRefresh.isRefreshing = state.loading
+        }
+
+        binding.swipeRefresh.setOnRefreshListener {
+            viewModel.loadPosts()
         }
 
         errorMergeBinding.retry.setOnClickListener {
             viewModel.loadPosts()
         }
-
-        //adapter.submitList(viewModel.data)
-
-        /*viewModel.data.observe(viewLifecycleOwner) { posts ->
-            val isNew = posts.size != adapter.itemCount
-            adapter.submitList(posts) {
-                if (isNew)
-                    binding.list.smoothScrollToPosition(0)
-            }
-        }*/
 
         binding.fab.setOnClickListener {
             findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
