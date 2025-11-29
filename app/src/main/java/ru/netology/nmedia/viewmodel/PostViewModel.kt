@@ -37,10 +37,31 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
     val draft = MutableLiveData<String?>(prefs.getString("draft", null))
-    fun like(id: Long) = repository.like(id)
+    
+    fun like(id: Long) {
+        thread {
+            try {
+                repository.like(id)
+                loadPosts()
+            } catch (_: Exception) {
+                // Обработка ошибки
+            }
+        }
+    }
+    
     fun share(id: Long) = repository.share(id)
     fun formatShortNumber(value: Long): String = repository.formatShortNumber(value)
-    fun removeById(id: Long) = repository.removeById(id)
+    
+    fun removeById(id: Long) {
+        thread {
+            try {
+                repository.removeById(id)
+                loadPosts()
+            } catch (_: Exception) {
+                // Обработка ошибки
+            }
+        }
+    }
     val edited = MutableLiveData(empty)
 
     private val _postCreated = SingleLiveEvent<Unit>()

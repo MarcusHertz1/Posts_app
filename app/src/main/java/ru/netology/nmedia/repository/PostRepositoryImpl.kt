@@ -33,7 +33,35 @@ class PostRepositoryImpl: PostRepository {
     }
 
     override fun like(id: Long) {
-        //dao.likeById(id)
+        // Получаем текущий пост, чтобы узнать его состояние (likedByMe)
+        val post = getById(id)
+        
+        // Если пост уже лайкнут - снимаем лайк (DELETE), иначе ставим лайк (POST)
+        val request = if (post.likedByMe) {
+            Request.Builder()
+                .url("${BASE_URL}/api/slow/posts/$id/likes")
+                .delete()
+                .build()
+        } else {
+            Request.Builder()
+                .url("${BASE_URL}/api/slow/posts/$id/likes")
+                .post("".toRequestBody(null))
+                .build()
+        }
+
+        val call = okHttpClient.newCall(request)
+        call.execute()
+    }
+
+    private fun getById(id: Long): Post {
+        val request = Request.Builder()
+            .url("${BASE_URL}/api/slow/posts/$id")
+            .build()
+
+        val call = okHttpClient.newCall(request)
+        val response = call.execute()
+        val stringResponse = response.body.string()
+        return gson.fromJson(stringResponse, Post::class.java)
     }
 
     override fun formatShortNumber(value: Long): String {
