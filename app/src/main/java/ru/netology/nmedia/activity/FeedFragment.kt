@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.net.toUri
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -13,6 +14,7 @@ import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.PostAdapter
 import ru.netology.nmedia.viewmodel.PostViewModel
 import ru.netology.nmedia.adapter.OnInteractionListener
+import ru.netology.nmedia.databinding.ErrorViewBinding
 import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.util.LongArg
@@ -29,10 +31,12 @@ class FeedFragment : Fragment() {
     ): View {
         val binding = FragmentFeedBinding.inflate(layoutInflater, container, false)
 
-        val adapter = PostAdapter(object : OnInteractionListener {
+        val adapter = PostAdapter(
+            object : OnInteractionListener {
                 override fun onEdit(post: Post) {
                     viewModel.edit(post)
-                    findNavController().navigate(R.id.action_feedFragment_to_newPostFragment,
+                    findNavController().navigate(
+                        R.id.action_feedFragment_to_newPostFragment,
                         Bundle().apply {
                             postId = post.id
                             textArgs = post.content
@@ -68,7 +72,8 @@ class FeedFragment : Fragment() {
                 }
 
                 override fun onPostClick(post: Post) {
-                    findNavController().navigate(R.id.action_feedFragment_to_postFragment,
+                    findNavController().navigate(
+                        R.id.action_feedFragment_to_postFragment,
                         Bundle().apply {
                             postId = post.id
                         })
@@ -81,12 +86,22 @@ class FeedFragment : Fragment() {
 
         binding.list.adapter = adapter
 
-        viewModel.data.observe(viewLifecycleOwner) { posts ->
-            val isNew = posts.size != adapter.itemCount
-            adapter.submitList(posts) {
-                if (isNew)
-                    binding.list.smoothScrollToPosition(0)
-            }
+        val errorMergeBinding = ErrorViewBinding.bind(binding.root)
+
+        viewModel.data.observe(viewLifecycleOwner) { state ->
+            adapter.submitList(state.posts)
+            //binding.progress.isVisible = state.loading
+            binding.empty.isVisible = state.empty
+            errorMergeBinding.errorGroup.isVisible = state.error
+            binding.swipeRefresh.isRefreshing = state.loading
+        }
+
+        binding.swipeRefresh.setOnRefreshListener {
+            viewModel.loadPosts()
+        }
+
+        errorMergeBinding.retry.setOnClickListener {
+            viewModel.loadPosts()
         }
 
         binding.fab.setOnClickListener {
@@ -97,7 +112,7 @@ class FeedFragment : Fragment() {
 
     }
 
-    companion object{
+    companion object {
         var Bundle.textArgs by StringsArg
         var Bundle.postId by LongArg
     }

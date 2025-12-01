@@ -69,10 +69,13 @@ class PostFragment : Fragment() {
 
         val holder = PostViewHolder(binding.singlePost, listener, viewModel::formatShortNumber)
 
-        viewModel.data.observe(viewLifecycleOwner) { posts ->
-            val postId = arguments?.postId ?: throw IllegalArgumentException("Post ID is required")
-            val post = posts.find { it.id == postId } ?: return@observe
-            holder.bind(post)
+        val postId = arguments?.postId ?: throw IllegalArgumentException("Post ID is required")
+        
+        viewModel.data.observe(viewLifecycleOwner) { state ->
+            val post = state.posts.find { it.id == postId }
+            if (post != null) {
+                holder.bind(post)
+            }
         }
 
         return binding.root
