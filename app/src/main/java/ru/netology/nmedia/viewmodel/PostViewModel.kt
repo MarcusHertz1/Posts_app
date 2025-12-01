@@ -11,13 +11,12 @@ import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.repository.PostRepositoryImpl
 import ru.netology.nmedia.util.SingleLiveEvent
-import kotlin.concurrent.thread
 
 class PostViewModel(application: Application) : AndroidViewModel(application) {
     private val repository: PostRepository = PostRepositoryImpl()
     private val _data = MutableLiveData(FeedModel())
     private val prefs = application.getSharedPreferences("draft", Context.MODE_PRIVATE)
-    val data : LiveData<FeedModel>
+    val data: LiveData<FeedModel>
         get() = _data
 
     init {
@@ -25,47 +24,53 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun loadPosts() {
-        thread {
-            _data.postValue(FeedModel(loading = true))
+        _data.postValue(FeedModel(loading = true))
+        repository.getAllAsync(object : PostRepository.GetAllCallBack{
+            override fun onSuccess(posts: List<Post>) {
+                _data.postValue(FeedModel(posts = posts, empty = posts.isEmpty()))
+            }
 
-            try {
-                val posts = repository.getAll()
-                FeedModel(posts = posts, empty = posts.isEmpty())
-            } catch (_: Exception) {
-                FeedModel(error = true)
-            }.let(_data::postValue)
-        }
+            override fun onError(e: Exception) {
+                _data.postValue(FeedModel(error = true))
+            }
+        })
     }
+
     val draft = MutableLiveData<String?>(prefs.getString("draft", null))
-    
+
     fun like(id: Long) {
-        thread {
-            try {
+        repository.getAllAsync(object : PostRepository.GetAllCallBack{
+            override fun onSuccess(posts: List<Post>) {
                 repository.like(id)
                 loadPosts()
-            } catch (_: Exception) {
+            }
+
+            override fun onError(e: Exception) {
                 // Обработка ошибки
             }
-        }
+        })
     }
-    
+
     fun share(id: Long) = repository.share(id)
     fun formatShortNumber(value: Long): String = repository.formatShortNumber(value)
-    
+
     fun removeById(id: Long) {
-        thread {
-            try {
+        repository.getAllAsync(object : PostRepository.GetAllCallBack{
+            override fun onSuccess(posts: List<Post>) {
                 repository.removeById(id)
                 loadPosts()
-            } catch (_: Exception) {
+            }
+
+            override fun onError(e: Exception) {
                 // Обработка ошибки
             }
-        }
+        })
     }
+
     val edited = MutableLiveData(empty)
 
     private val _postCreated = SingleLiveEvent<Unit>()
-    val postCreated : LiveData<Unit>
+    val postCreated: LiveData<Unit>
         get() = _postCreated
 
     val empty get() = PostViewModel.empty
@@ -86,22 +91,28 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun save() {
-        thread {
-            edited.value?.let {
-                repository.save(it)
-                if (it.id == 0L) {
-                    draft.postValue(null)
-                    prefs.edit { remove("draft") }
-                    loadPosts()
-                    _postCreated.postValue(Unit)
+        repository.getAllAsync(object : PostRepository.GetAllCallBack{
+            override fun onSuccess(posts: List<Post>) {
+                edited.value?.let {
+                    repository.save(it)
+                    if (it.id == 0L) {
+                        draft.postValue(null)
+                        prefs.edit { remove("draft") }
+                        loadPosts()
+                        _postCreated.postValue(Unit)
+                    }
                 }
+                edited.postValue(empty)
             }
-            edited.postValue(empty)
-        }
+
+            override fun onError(e: Exception) {
+                // Обработка ошибки
+            }
+        })
     }
 
     fun edit(post: Post) {
-            edited.value = post
+        edited.value = post
     }
 
     companion object {
