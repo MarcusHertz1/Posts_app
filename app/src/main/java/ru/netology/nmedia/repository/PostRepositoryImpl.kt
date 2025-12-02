@@ -2,20 +2,24 @@ package ru.netology.nmedia.repository
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import okhttp3.Call
+import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
+import okio.IOException
 import ru.netology.nmedia.dto.Post
 import java.lang.reflect.Type
 import java.util.concurrent.TimeUnit
 
-class PostRepositoryImpl: PostRepository {
+class PostRepositoryImpl : PostRepository {
     private val okHttpClient = OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).build()
 
     private val gson = Gson()
 
-    private companion object{
+    private companion object {
         const val BASE_URL = "http://10.0.2.2:9999"
         val jsonType = "application/json".toMediaType()
         val postsType: Type = object : TypeToken<List<Post>>() {}.type
@@ -26,10 +30,10 @@ class PostRepositoryImpl: PostRepository {
             .url("${BASE_URL}/api/slow/posts")
             .build()
 
-        val call = okHttpClient.newCall(request)
-        val response = call.execute()
-        val stringResponse = response.body.string()
-        return gson.fromJson(stringResponse, postsType)
+        return gson.fromJson(
+            okHttpClient.newCall(request).execute().body.string(),
+            postsType
+        )
     }
 
     override fun like(id: Long) {
@@ -47,8 +51,7 @@ class PostRepositoryImpl: PostRepository {
                 .build()
         }
 
-        val call = okHttpClient.newCall(request)
-        call.execute()
+        okHttpClient.newCall(request).execute()
     }
 
     private fun getById(id: Long): Post {
@@ -56,10 +59,10 @@ class PostRepositoryImpl: PostRepository {
             .url("${BASE_URL}/api/slow/posts/$id")
             .build()
 
-        val call = okHttpClient.newCall(request)
-        val response = call.execute()
-        val stringResponse = response.body.string()
-        return gson.fromJson(stringResponse, Post::class.java)
+        return gson.fromJson(
+            okHttpClient.newCall(request).execute().body.string(),
+            Post::class.java
+        )
     }
 
     override fun formatShortNumber(value: Long): String {
@@ -98,9 +101,30 @@ class PostRepositoryImpl: PostRepository {
             .post(gson.toJson(post).toRequestBody(jsonType))
             .build()
 
-        val call = okHttpClient.newCall(request)
-        val response = call.execute()
-        val stringResponse = response.body.string()
-        return gson.fromJson(stringResponse, Post::class.java)
+        return gson.fromJson(
+            okHttpClient.newCall(request).execute().body.string(),
+            Post::class.java
+        )
+    }
+
+    override fun getAllAsync(callback: PostRepository.GetAllCallBack) {
+        val request = Request.Builder()
+            .url("${BASE_URL}/api/slow/posts")
+            .build()
+
+        okHttpClient.newCall(request).enqueue(object : Callback {
+            override fun onResponse(call: Call, response: Response) {
+                try {
+                    val posts = response.body.string()
+                    callback.onSuccess(gson.fromJson(posts, postsType))
+                } catch (e: Exception){
+                    callback.onError(e)
+                }
+            }
+
+            override fun onFailure(call: Call, e: IOException) {
+                callback.onError(e)
+            }
+        })
     }
 }
