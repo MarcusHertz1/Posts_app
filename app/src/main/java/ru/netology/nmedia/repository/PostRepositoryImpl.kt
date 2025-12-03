@@ -10,6 +10,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import okio.IOException
+import ru.netology.nmedia.dto.AttachmentType
 import ru.netology.nmedia.dto.Post
 import java.lang.reflect.Type
 import java.util.concurrent.TimeUnit
@@ -126,5 +127,31 @@ class PostRepositoryImpl : PostRepository {
                 callback.onError(e)
             }
         })
+    }
+
+    override fun getAvatarUrl(post: Post): String {
+        return post.authorAvatar?.let {
+            val filename = if (it.contains(".")) it else "$it.jpg"
+            "$BASE_URL/avatars/$filename"
+        } ?: run {
+            val authorKey = post.author.lowercase()
+                .replace(" ", "")
+                .replace(".", "")
+                .replace(",", "")
+                .take(20)
+            "$BASE_URL/avatars/$authorKey.jpg"
+        }
+    }
+
+    override fun getImageUrl(post: Post): String? {
+        val imageUrl = post.attachment?.takeIf { it.type == AttachmentType.IMAGE }?.url
+        return imageUrl?.let {
+            if (it.startsWith("http")) {
+                it
+            } else {
+                val filename = if (it.contains(".")) it else "$it.jpg"
+                "$BASE_URL/images/$filename"
+            }
+        }
     }
 }

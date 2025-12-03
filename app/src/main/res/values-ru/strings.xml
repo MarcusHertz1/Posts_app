@@ -29,5 +29,6 @@
     <string name="network_error">Ошибка сети</string>
     <string name="retry">Повторить</string>
     <string name="no_posts">Нет постов</string>
+    <string name="image_preview">Превью изображения</string>
 
 </resources>

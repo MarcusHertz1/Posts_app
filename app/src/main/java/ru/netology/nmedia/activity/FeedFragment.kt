@@ -81,6 +81,12 @@ class FeedFragment : Fragment() {
             },
             formatNumber = { number ->
                 viewModel.formatShortNumber(number)
+            },
+            getAvatarUrl = { post ->
+                viewModel.getAvatarUrl(post)
+            },
+            getImageUrl = { post ->
+                viewModel.getImageUrl(post)
             }
         )
 

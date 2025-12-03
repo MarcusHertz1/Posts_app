@@ -53,6 +53,9 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     fun share(id: Long) = repository.share(id)
     fun formatShortNumber(value: Long): String = repository.formatShortNumber(value)
+    
+    fun getAvatarUrl(post: Post): String = repository.getAvatarUrl(post)
+    fun getImageUrl(post: Post): String? = repository.getImageUrl(post)
 
     fun removeById(id: Long) {
         repository.getAllAsync(object : PostRepository.GetAllCallBack{
