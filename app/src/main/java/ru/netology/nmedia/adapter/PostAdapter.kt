@@ -80,6 +80,7 @@ class PostViewHolder(
             .placeholder(R.drawable.ic_netology)
             .error(R.drawable.ic_netology)
             .transform(CircleCrop())
+            .timeout(10_000)
             .into(avatar)
 
         val imageUrl = getImageUrl(post)
@@ -87,6 +88,7 @@ class PostViewHolder(
             Glide.with(ivImagePreview.context)
                 .load(imageUrl)
                 .fitCenter()
+                .timeout(10_000)
                 .into(ivImagePreview)
             imagePreview.visibility = View.VISIBLE
         } else {
