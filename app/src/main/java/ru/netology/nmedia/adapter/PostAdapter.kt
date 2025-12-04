@@ -1,6 +1,5 @@
 package ru.netology.nmedia.adapter
 
-import android.R.attr.author
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,11 +7,15 @@ import androidx.appcompat.widget.PopupMenu
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.resource.bitmap.CircleCrop
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
 
 typealias FormatNumber = (number: Long) -> String
+typealias GetAvatarUrl = (post: Post) -> String
+typealias GetImageUrl = (post: Post) -> String?
 
 interface OnInteractionListener{
     fun onLike (post: Post)
@@ -26,6 +29,8 @@ interface OnInteractionListener{
 class PostAdapter(
     private val onInteractionListener: OnInteractionListener,
     private val formatNumber: FormatNumber,
+    private val getAvatarUrl: GetAvatarUrl,
+    private val getImageUrl: GetImageUrl,
 ) : ListAdapter<Post, PostViewHolder>(PostDiffCallBack) {
 
     override fun onCreateViewHolder(
@@ -36,7 +41,9 @@ class PostAdapter(
         return PostViewHolder(
             binding,
             onInteractionListener,
-            formatNumber
+            formatNumber,
+            getAvatarUrl,
+            getImageUrl
         )
     }
 
@@ -53,6 +60,8 @@ class PostViewHolder(
     private val binding: CardPostBinding,
     private val onInteractionListener: OnInteractionListener,
     private val formatNumber: FormatNumber,
+    private val getAvatarUrl: GetAvatarUrl,
+    private val getImageUrl: GetImageUrl,
 ) : RecyclerView.ViewHolder(binding.root) {
     fun bind(post: Post) = binding.apply {
         author.text = post.author
@@ -65,7 +74,27 @@ class PostViewHolder(
             text = formatNumber(post.likes)
         }
 
-        videoPreview.visibility = if (post.video != null) View.VISIBLE else View.GONE
+        val avatarUrl = getAvatarUrl(post)
+        Glide.with(avatar.context)
+            .load(avatarUrl)
+            .placeholder(R.drawable.ic_netology)
+            .error(R.drawable.ic_netology)
+            .transform(CircleCrop())
+            .timeout(10_000)
+            .into(avatar)
+
+        val imageUrl = getImageUrl(post)
+        if (imageUrl != null) {
+            Glide.with(ivImagePreview.context)
+                .load(imageUrl)
+                .fitCenter()
+                .timeout(10_000)
+                .into(ivImagePreview)
+            imagePreview.visibility = View.VISIBLE
+        } else {
+            imagePreview.visibility = View.GONE
+        }
+        
         videoPreview.setOnClickListener {
             onInteractionListener.onPlayVideo(post)
         }

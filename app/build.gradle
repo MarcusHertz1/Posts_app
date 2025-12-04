@@ -66,4 +66,5 @@ dependencies {
     implementation(libs.play.services)
     implementation (libs.okhttp)
     implementation(libs.androidx.swiperefreshlayout)
+    implementation(libs.glide)
 }

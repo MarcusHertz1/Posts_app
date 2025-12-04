@@ -11,6 +11,9 @@ interface PostRepository {
     fun save(post: Post): Post
 
     fun getAllAsync(callback: GetAllCallBack)
+    
+    fun getAvatarUrl(post: Post): String
+    fun getImageUrl(post: Post): String?
 
     interface GetAllCallBack {
         fun onSuccess(posts: List<Post>)

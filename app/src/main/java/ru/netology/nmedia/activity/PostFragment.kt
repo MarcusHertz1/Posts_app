@@ -67,7 +67,13 @@ class PostFragment : Fragment() {
             }
         }
 
-        val holder = PostViewHolder(binding.singlePost, listener, viewModel::formatShortNumber)
+        val holder = PostViewHolder(
+            binding.singlePost,
+            listener,
+            viewModel::formatShortNumber,
+            viewModel::getAvatarUrl,
+            viewModel::getImageUrl
+        )
 
         val postId = arguments?.postId ?: throw IllegalArgumentException("Post ID is required")
         
