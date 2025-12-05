@@ -1,5 +1,6 @@
 package ru.netology.nmedia.api
 
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
@@ -13,13 +14,23 @@ import retrofit2.http.POST
 import retrofit2.http.Path
 import ru.netology.nmedia.BuildConfig
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.util.ErrorHandler
 import java.util.concurrent.TimeUnit
 
-private const val BASE_URL = "http://10.0.2.2:9999/api/slow/"
+private const val BASE_URL = "http://10.0.2.2:9999/api/"
+
+private val errorInterceptor = Interceptor { chain ->
+    val response = chain.proceed(chain.request())
+    if (!response.isSuccessful) {
+        ErrorHandler.handleError(response)
+    }
+    response
+}
 
 private val okHttpClient = OkHttpClient
     .Builder()
     .connectTimeout(30, TimeUnit.SECONDS)
+    .addInterceptor(errorInterceptor)
     .apply {
         if (BuildConfig.DEBUG) {
             addInterceptor(HttpLoggingInterceptor().apply {
@@ -39,8 +50,17 @@ interface PostApiService {
     @GET("posts")
     fun getAll(): Call<List<Post>>
 
+    @GET("posts/{id}")
+    fun getById(@Path("id") id: Long): Call<Post>
+
     @POST("posts")
     fun save(@Body post: Post): Call<Post>
+
+    @POST("posts/{id}/likes")
+    fun like(@Path("id") id: Long): Call<Post>
+
+    @DELETE("posts/{id}/likes")
+    fun unlike(@Path("id") id: Long): Call<Post>
 
     @DELETE("posts/{id}")
     fun removeById(@Path("id") id: Long): Call<Unit>
@@ -50,4 +70,6 @@ object PostApi {
     val service: PostApiService by lazy {
         retrofit.create()
     }
+    
+    const val BASE_URL = "http://10.0.2.2:9999"
 }

@@ -10,8 +10,8 @@ import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.repository.PostRepositoryImpl
+import ru.netology.nmedia.util.ErrorHandler
 import ru.netology.nmedia.util.SingleLiveEvent
-import kotlin.concurrent.thread
 
 class PostViewModel(application: Application) : AndroidViewModel(application) {
     private val repository: PostRepository = PostRepositoryImpl()
@@ -40,14 +40,17 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     val draft = MutableLiveData<String?>(prefs.getString("draft", null))
 
     fun like(id: Long) {
-        repository.getAllAsync(object : PostRepository.GetAllCallBack{
-            override fun onSuccess(posts: List<Post>) {
-                repository.like(id)
+        repository.like(id, object : PostRepository.LikeCallback {
+            override fun onSuccess(post: Post) {
                 loadPosts()
             }
 
-            override fun onError(e: Throwable) {
-                // Обработка ошибки
+            override fun onError(response: retrofit2.Response<*>?, throwable: Throwable?) {
+                if (response != null) {
+                    ErrorHandler.handleError(response)
+                } else if (throwable != null) {
+                    ErrorHandler.handleError()
+                }
             }
         })
     }
@@ -59,14 +62,17 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     fun getImageUrl(post: Post): String? = repository.getImageUrl(post)
 
     fun removeById(id: Long) {
-        repository.getAllAsync(object : PostRepository.GetAllCallBack{
-            override fun onSuccess(posts: List<Post>) {
-                repository.removeById(id)
+        repository.removeById(id, object : PostRepository.RemoveCallback {
+            override fun onSuccess() {
                 loadPosts()
             }
 
-            override fun onError(e: Throwable) {
-                // Обработка ошибки
+            override fun onError(response: retrofit2.Response<*>?, throwable: Throwable?) {
+                if (response != null) {
+                    ErrorHandler.handleError(response)
+                } else if (throwable != null) {
+                    ErrorHandler.handleError()
+                }
             }
         })
     }
@@ -95,15 +101,23 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun save() {
-        edited.value?.let {
-            thread {
-                repository.save(it)
-                loadPosts()
-                _postCreated.postValue(Unit)
-            }
+        edited.value?.let { post ->
+            repository.save(post, object : PostRepository.SaveCallback {
+                override fun onSuccess(post: Post) {
+                    loadPosts()
+                    _postCreated.postValue(Unit)
+                }
+
+                override fun onError(response: retrofit2.Response<*>?, throwable: Throwable?) {
+                    if (response != null) {
+                        ErrorHandler.handleError(response)
+                    } else if (throwable != null) {
+                        ErrorHandler.handleError()
+                    }
+                }
+            })
         }
         edited.value = empty
-
     }
 
     fun edit(post: Post) {
