@@ -1,44 +1,50 @@
 package ru.netology.nmedia.repository
 
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.Response
-import okio.IOException
-import ru.netology.nmedia.dto.AttachmentType
+
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import ru.netology.nmedia.api.PostApi
 import ru.netology.nmedia.dto.Post
-import java.lang.reflect.Type
-import java.util.concurrent.TimeUnit
 
 class PostRepositoryImpl : PostRepository {
-    private val okHttpClient = OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).build()
-
-    private val gson = Gson()
-
-    private companion object {
-        const val BASE_URL = "http://10.0.2.2:9999"
-        val jsonType = "application/json".toMediaType()
-        val postsType: Type = object : TypeToken<List<Post>>() {}.type
+    override fun getAll(): List<Post> {
+        return PostApi.service.getAll().execute()
+            .let { it.body() ?: throw RuntimeException("body is null") }
     }
 
-    override fun getAll(): List<Post> {
-        val request = Request.Builder()
-            .url("${BASE_URL}/api/slow/posts")
-            .build()
+    override fun getAllAsync(callback: PostRepository.GetAllCallBack) {
+        PostApi.service.getAll()
+            .enqueue(object : Callback<List<Post>> {
+                override fun onResponse(
+                    call: Call<List<Post>>,
+                    response: Response<List<Post>>
+                ) {
+                    if (!response.isSuccessful) {
+                        callback.onError(RuntimeException(response.errorBody().toString()))
+                        return
+                    }
 
-        return gson.fromJson(
-            okHttpClient.newCall(request).execute().body.string(),
-            postsType
-        )
+                    val posts = response.body()
+                    if (posts == null){
+                        callback.onError(RuntimeException("Body is null"))
+                        return
+                    }
+
+                    callback.onSuccess(posts)
+                }
+
+                override fun onFailure(
+                    call: Call<List<Post>>,
+                    t: Throwable
+                ) {
+                    callback.onError(t)
+                }
+            })
     }
 
     override fun like(id: Long) {
-        val post = getById(id)
+        /*val post = getById(id)
 
         val request = if (post.likedByMe) {
             Request.Builder()
@@ -52,18 +58,18 @@ class PostRepositoryImpl : PostRepository {
                 .build()
         }
 
-        okHttpClient.newCall(request).execute()
+        okHttpClient.newCall(request).execute()*/TODO()
     }
 
     private fun getById(id: Long): Post {
-        val request = Request.Builder()
+        /*val request = Request.Builder()
             .url("${BASE_URL}/api/slow/posts/$id")
             .build()
 
         return gson.fromJson(
             okHttpClient.newCall(request).execute().body.string(),
             Post::class.java
-        )
+        )*/TODO()
     }
 
     override fun formatShortNumber(value: Long): String {
@@ -93,44 +99,15 @@ class PostRepositoryImpl : PostRepository {
     }
 
     override fun removeById(id: Long) {
-        //dao.removeById(id)
+        PostApi.service.removeById(id).execute()
     }
 
-    override fun save(post: Post): Post {
-        val request = Request.Builder()
-            .url("${BASE_URL}/api/slow/posts")
-            .post(gson.toJson(post).toRequestBody(jsonType))
-            .build()
-
-        return gson.fromJson(
-            okHttpClient.newCall(request).execute().body.string(),
-            Post::class.java
-        )
-    }
-
-    override fun getAllAsync(callback: PostRepository.GetAllCallBack) {
-        val request = Request.Builder()
-            .url("${BASE_URL}/api/slow/posts")
-            .build()
-
-        okHttpClient.newCall(request).enqueue(object : Callback {
-            override fun onResponse(call: Call, response: Response) {
-                try {
-                    val posts = response.body.string()
-                    callback.onSuccess(gson.fromJson(posts, postsType))
-                } catch (e: Exception){
-                    callback.onError(e)
-                }
-            }
-
-            override fun onFailure(call: Call, e: IOException) {
-                callback.onError(e)
-            }
-        })
+    override fun save(post: Post){
+        PostApi.service.save(post).execute()
     }
 
     override fun getAvatarUrl(post: Post): String {
-        return post.authorAvatar?.let {
+        /*return post.authorAvatar?.let {
             val filename = if (it.contains(".")) it else "$it.jpg"
             "$BASE_URL/avatars/$filename"
         } ?: run {
@@ -140,11 +117,11 @@ class PostRepositoryImpl : PostRepository {
                 .replace(",", "")
                 .take(20)
             "$BASE_URL/avatars/$authorKey.jpg"
-        }
+        }*/TODO()
     }
 
     override fun getImageUrl(post: Post): String? {
-        val imageUrl = post.attachment?.takeIf { it.type == AttachmentType.IMAGE }?.url
+        /*val imageUrl = post.attachment?.takeIf { it.type == AttachmentType.IMAGE }?.url
         return imageUrl?.let {
             if (it.startsWith("http")) {
                 it
@@ -152,6 +129,7 @@ class PostRepositoryImpl : PostRepository {
                 val filename = if (it.contains(".")) it else "$it.jpg"
                 "$BASE_URL/images/$filename"
             }
-        }
+        }*/
+        TODO("Provide the return value")
     }
 }

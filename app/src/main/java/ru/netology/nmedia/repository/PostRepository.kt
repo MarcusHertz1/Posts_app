@@ -8,7 +8,7 @@ interface PostRepository {
     fun formatShortNumber(value: Long): String
     fun share(id: Long)
     fun removeById(id: Long)
-    fun save(post: Post): Post
+    fun save(post: Post)
 
     fun getAllAsync(callback: GetAllCallBack)
     
@@ -17,6 +17,6 @@ interface PostRepository {
 
     interface GetAllCallBack {
         fun onSuccess(posts: List<Post>)
-        fun onError(e: Exception)
+        fun onError(e: Throwable)
     }
 }

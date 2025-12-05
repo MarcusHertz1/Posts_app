@@ -74,7 +74,7 @@ class PostViewHolder(
             text = formatNumber(post.likes)
         }
 
-        val avatarUrl = getAvatarUrl(post)
+        /*val avatarUrl = getAvatarUrl(post)
         Glide.with(avatar.context)
             .load(avatarUrl)
             .placeholder(R.drawable.ic_netology)
@@ -93,7 +93,7 @@ class PostViewHolder(
             imagePreview.visibility = View.VISIBLE
         } else {
             imagePreview.visibility = View.GONE
-        }
+        }*/
         
         videoPreview.setOnClickListener {
             onInteractionListener.onPlayVideo(post)

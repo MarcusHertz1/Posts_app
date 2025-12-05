@@ -11,6 +11,7 @@ import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.repository.PostRepositoryImpl
 import ru.netology.nmedia.util.SingleLiveEvent
+import kotlin.concurrent.thread
 
 class PostViewModel(application: Application) : AndroidViewModel(application) {
     private val repository: PostRepository = PostRepositoryImpl()
@@ -27,11 +28,11 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         _data.postValue(FeedModel(loading = true))
         repository.getAllAsync(object : PostRepository.GetAllCallBack{
             override fun onSuccess(posts: List<Post>) {
-                _data.postValue(FeedModel(posts = posts, empty = posts.isEmpty()))
+                _data.value = (FeedModel(posts = posts, empty = posts.isEmpty()))
             }
 
-            override fun onError(e: Exception) {
-                _data.postValue(FeedModel(error = true))
+            override fun onError(e: Throwable) {
+                _data.value = (FeedModel(error = true))
             }
         })
     }
@@ -45,7 +46,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                 loadPosts()
             }
 
-            override fun onError(e: Exception) {
+            override fun onError(e: Throwable) {
                 // Обработка ошибки
             }
         })
@@ -64,7 +65,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                 loadPosts()
             }
 
-            override fun onError(e: Exception) {
+            override fun onError(e: Throwable) {
                 // Обработка ошибки
             }
         })
@@ -94,24 +95,15 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun save() {
-        repository.getAllAsync(object : PostRepository.GetAllCallBack{
-            override fun onSuccess(posts: List<Post>) {
-                edited.value?.let {
-                    repository.save(it)
-                    if (it.id == 0L) {
-                        draft.postValue(null)
-                        prefs.edit { remove("draft") }
-                        loadPosts()
-                        _postCreated.postValue(Unit)
-                    }
-                }
-                edited.postValue(empty)
+        edited.value?.let {
+            thread {
+                repository.save(it)
+                loadPosts()
+                _postCreated.postValue(Unit)
             }
+        }
+        edited.value = empty
 
-            override fun onError(e: Exception) {
-                // Обработка ошибки
-            }
-        })
     }
 
     fun edit(post: Post) {
