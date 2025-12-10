@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -44,17 +43,6 @@ class NewPostFragment : Fragment() {
                 }
             }
         }
-
-        val callback = object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                val currentText = binding.edit.text.toString().trim()
-                if (currentText.isNotEmpty() && viewModel.edited.value?.id == 0L) {
-                    viewModel.saveDraft(currentText)
-                }
-                findNavController().navigateUp()
-            }
-        }
-        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, callback)
 
         binding.save.setOnClickListener {
             if (binding.edit.text.isNotBlank()) {
