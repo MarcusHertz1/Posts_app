@@ -2,93 +2,86 @@ package ru.netology.nmedia.viewmodel
 
 import android.app.Application
 import android.content.Context
-import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asFlow
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.launch
+import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModel
+import ru.netology.nmedia.model.FeedModelState
 import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.repository.PostRepositoryImpl
 import ru.netology.nmedia.util.ErrorHandler
 import ru.netology.nmedia.util.SingleLiveEvent
 
 class PostViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository: PostRepository = PostRepositoryImpl()
-    private val _data = MutableLiveData(FeedModel())
+    private val repository: PostRepository =
+        PostRepositoryImpl(AppDb.getInstance(application).postDao())
     private val prefs = application.getSharedPreferences("draft", Context.MODE_PRIVATE)
-    val data: LiveData<FeedModel>
-        get() = _data
+    private val _state = MutableLiveData(FeedModelState())
+    val state: LiveData<FeedModelState>
+        get() = _state
+    val data: LiveData<FeedModel> =
+        repository.data.asFlow().combine(repository.isEmpty().asFlow(), ::FeedModel)
+            .asLiveData()
+
+    private val edited = MutableLiveData(empty)
+    private val _postCreated = SingleLiveEvent<Unit>()
+    val postCreated: LiveData<Unit>
+        get() = _postCreated
 
     init {
         loadPosts()
     }
 
     fun loadPosts() {
-        _data.postValue(FeedModel(loading = true))
-        repository.getAllAsync(object : PostRepository.GetAllCallBack{
-            override fun onSuccess(posts: List<Post>) {
-                _data.value = (FeedModel(posts = posts, empty = posts.isEmpty()))
+        viewModelScope.launch {
+            _state.postValue(FeedModelState(loading = true))
+            try {
+                repository.getAllAsync()
+                _state.postValue(FeedModelState())
+            } catch (_: Exception) {
+                _state.postValue(FeedModelState(error = true))
             }
-
-            override fun onError(e: Throwable) {
-                _data.value = (FeedModel(error = true))
-            }
-        })
+        }
     }
 
     val draft = MutableLiveData<String?>(prefs.getString("draft", null))
 
     fun like(id: Long) {
-        repository.like(id, object : PostRepository.LikeCallback {
-            override fun onSuccess(post: Post) {
-                loadPosts()
+        viewModelScope.launch {
+            try {
+                repository.like(id)
+            } catch (_: Exception) {
+                _state.postValue(FeedModelState(error = true))
+                ErrorHandler.handleError()
             }
-
-            override fun onError(response: retrofit2.Response<*>?, throwable: Throwable?) {
-                if (response != null) {
-                    ErrorHandler.handleError(response)
-                } else if (throwable != null) {
-                    ErrorHandler.handleError()
-                }
-            }
-        })
+        }
     }
 
     fun share(id: Long) = repository.share(id)
     fun formatShortNumber(value: Long): String = repository.formatShortNumber(value)
-    
+
     fun getAvatarUrl(post: Post): String = repository.getAvatarUrl(post)
     fun getImageUrl(post: Post): String? = repository.getImageUrl(post)
 
     fun removeById(id: Long) {
-        repository.removeById(id, object : PostRepository.RemoveCallback {
-            override fun onSuccess() {
-                loadPosts()
+        viewModelScope.launch {
+            try {
+                repository.removeById(id)
+            } catch (_: Exception) {
+                _state.postValue(FeedModelState(error = true))
+                ErrorHandler.handleError()
             }
-
-            override fun onError(response: retrofit2.Response<*>?, throwable: Throwable?) {
-                if (response != null) {
-                    ErrorHandler.handleError(response)
-                } else if (throwable != null) {
-                    ErrorHandler.handleError()
-                }
-            }
-        })
+        }
     }
-
-    val edited = MutableLiveData(empty)
-
-    private val _postCreated = SingleLiveEvent<Unit>()
-    val postCreated: LiveData<Unit>
-        get() = _postCreated
 
     val empty get() = PostViewModel.empty
-
-    fun saveDraft(text: String) {
-        draft.value = text
-        prefs.edit { putString("draft", text) }
-    }
 
     fun changeContent(content: String) {
         val text = content.trim()
@@ -101,23 +94,14 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun save() {
-        edited.value?.let { post ->
-            repository.save(post, object : PostRepository.SaveCallback {
-                override fun onSuccess(post: Post) {
-                    loadPosts()
-                    _postCreated.postValue(Unit)
-                }
+        viewModelScope.launch {
+            edited.value?.let {
+                repository.save(it)
 
-                override fun onError(response: retrofit2.Response<*>?, throwable: Throwable?) {
-                    if (response != null) {
-                        ErrorHandler.handleError(response)
-                    } else if (throwable != null) {
-                        ErrorHandler.handleError()
-                    }
-                }
-            })
+                _postCreated.postValue(Unit)
+            }
+            edited.value = empty
         }
-        edited.value = empty
     }
 
     fun edit(post: Post) {
