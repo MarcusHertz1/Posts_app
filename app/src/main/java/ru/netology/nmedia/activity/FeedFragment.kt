@@ -9,7 +9,11 @@ import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import kotlinx.coroutines.launch
 import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.PostAdapter
 import ru.netology.nmedia.viewmodel.PostViewModel
@@ -99,11 +103,25 @@ class FeedFragment : Fragment() {
             binding.empty.isVisible = state.empty
         }
 
-        viewModel.state.observe(viewLifecycleOwner) { state ->
+        viewModel.newerCount.observe(viewLifecycleOwner) {
+            println(it)
+        }
+
+        /*viewModel.state.observe(viewLifecycleOwner) { state ->
             //binding.progress.isVisible = state.loading
             errorMergeBinding.errorGroup.isVisible = state.error
             binding.swipeRefresh.isRefreshing = state.loading
+        }*/
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect { state ->
+                    //binding.progress.isVisible = state.loading
+                    errorMergeBinding.errorGroup.isVisible = state.error
+                    binding.swipeRefresh.isRefreshing = state.loading
+                }
+            }
         }
+
 
         binding.swipeRefresh.setOnRefreshListener {
             viewModel.loadPosts()
