@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.Post
@@ -51,9 +52,18 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     val shouldScrollToTop: LiveData<Unit>
         get() = _shouldScrollToTop
 
-    val newerCount = data.switchMap {
-        repository.getNewer(it.posts.firstOrNull()?.id ?: 0)
-            .asLiveData(Dispatchers.Default)
+    private val _ignoreNewerUntil = MutableStateFlow(0L)
+    
+    val newerCount = data.switchMap { feedModel ->
+        val rawNewerCount = repository.getNewer(feedModel.posts.firstOrNull()?.id ?: 0)
+        combine(rawNewerCount, _ignoreNewerUntil) { count, ignoreUntil ->
+            val currentTime = System.currentTimeMillis()
+            if (currentTime < ignoreUntil) {
+                0
+            } else {
+                count
+            }
+        }.asLiveData(Dispatchers.Default)
     }
 
     init {
@@ -121,6 +131,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
                 _postCreated.postValue(Unit)
                 _shouldScrollToTop.postValue(Unit)
+                _ignoreNewerUntil.value = System.currentTimeMillis() + 15_000
             }
             edited.value = empty
         }
@@ -131,6 +142,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 val firstPostId = data.value?.posts?.firstOrNull()?.id ?: 0
                 repository.loadNewerPosts(firstPostId)
+                _ignoreNewerUntil.value = System.currentTimeMillis() + 15_000
             } catch (_: Exception) {
                 _state.value = FeedModelState(error = true)
             }
