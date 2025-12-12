@@ -30,5 +30,6 @@
     <string name="retry">Повторить</string>
     <string name="no_posts">Нет постов</string>
     <string name="image_preview">Превью изображения</string>
+    <string name="new_posts">Новые посты</string>
 
 </resources>

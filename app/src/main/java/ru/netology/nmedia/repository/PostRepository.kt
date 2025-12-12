@@ -6,6 +6,7 @@ import ru.netology.nmedia.dto.Post
 interface PostRepository {
     val data: Flow<List<Post>>
     fun getNewer(id:Long): Flow<Int>
+    suspend fun loadNewerPosts(id: Long)
     fun isEmpty(): Boolean
     suspend fun like(id: Long): Post
     fun formatShortNumber(value: Long): String

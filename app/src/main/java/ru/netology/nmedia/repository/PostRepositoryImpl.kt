@@ -2,7 +2,6 @@ package ru.netology.nmedia.repository
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import ru.netology.nmedia.api.PostApi
@@ -10,7 +9,6 @@ import ru.netology.nmedia.dao.PostDao
 import ru.netology.nmedia.dto.AttachmentType
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.entity.PostEntity
-import ru.netology.nmedia.error.AppError
 
 class PostRepositoryImpl(
     private val dao: PostDao
@@ -49,10 +47,15 @@ class PostRepositoryImpl(
         while (true) {
             delay(10_000)
             val posts = PostApi.retrofitService.getNewer(id)
-            dao.insert(posts.map(PostEntity::fromDto))
-            emit(posts.map(PostEntity::fromDto).size)//вывод размера
+            // Не добавляем посты в БД сразу, только возвращаем количество
+            emit(posts.size)
         }
-    }.catch { e -> throw AppError.from(e) }
+    }/*.catch { e -> throw AppError.from(e) }*/
+    
+    override suspend fun loadNewerPosts(id: Long) {
+        val posts = PostApi.retrofitService.getNewer(id)
+        dao.insert(posts.map(PostEntity::fromDto))
+    }
 
     override suspend fun save(post: Post): Post {
         val postFromServer = PostApi.retrofitService.save(post)

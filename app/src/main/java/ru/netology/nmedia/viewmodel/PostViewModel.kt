@@ -46,6 +46,10 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     private val _postCreated = SingleLiveEvent<Unit>()
     val postCreated: LiveData<Unit>
         get() = _postCreated
+    
+    private val _shouldScrollToTop = SingleLiveEvent<Unit>()
+    val shouldScrollToTop: LiveData<Unit>
+        get() = _shouldScrollToTop
 
     val newerCount = data.switchMap {
         repository.getNewer(it.posts.firstOrNull()?.id ?: 0)
@@ -116,8 +120,20 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                 repository.save(it)
 
                 _postCreated.postValue(Unit)
+                _shouldScrollToTop.postValue(Unit)
             }
             edited.value = empty
+        }
+    }
+    
+    fun loadNewerPosts() {
+        viewModelScope.launch {
+            try {
+                val firstPostId = data.value?.posts?.firstOrNull()?.id ?: 0
+                repository.loadNewerPosts(firstPostId)
+            } catch (_: Exception) {
+                _state.value = FeedModelState(error = true)
+            }
         }
     }
 

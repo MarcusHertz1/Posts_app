@@ -102,9 +102,28 @@ class FeedFragment : Fragment() {
             adapter.submitList(state.posts)
             binding.empty.isVisible = state.empty
         }
+        
+        viewModel.shouldScrollToTop.observe(viewLifecycleOwner) {
+            // Используем post() для выполнения скролла после обновления списка
+            binding.list.post {
+                binding.list.smoothScrollToPosition(0)
+            }
+        }
 
-        viewModel.newerCount.observe(viewLifecycleOwner) {
-            println(it)
+        viewModel.newerCount.observe(viewLifecycleOwner) { count ->
+            if (count != 0) {
+                binding.newer.isVisible = true
+                binding.newer.setOnClickListener {
+                    binding.newer.isVisible = false
+                    viewModel.loadNewerPosts()
+                    // Используем post() для выполнения скролла после обновления списка
+                    binding.list.post {
+                        binding.list.smoothScrollToPosition(0)
+                    }
+                }
+            } else {
+                binding.newer.isVisible = false
+            }
         }
 
         /*viewModel.state.observe(viewLifecycleOwner) { state ->
