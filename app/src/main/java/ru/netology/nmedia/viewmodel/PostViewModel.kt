@@ -5,9 +5,15 @@ import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.asFlow
 import androidx.lifecycle.asLiveData
+import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.db.AppDb
@@ -23,17 +29,42 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     private val repository: PostRepository =
         PostRepositoryImpl(AppDb.getInstance(application).postDao())
     private val prefs = application.getSharedPreferences("draft", Context.MODE_PRIVATE)
-    private val _state = MutableLiveData(FeedModelState())
-    val state: LiveData<FeedModelState>
-        get() = _state
-    val data: LiveData<FeedModel> =
-        repository.data.asFlow().combine(repository.isEmpty().asFlow(), ::FeedModel)
-            .asLiveData()
+    private val _state = MutableStateFlow(FeedModelState())
+    val state: StateFlow<FeedModelState> = _state.asStateFlow()
 
-    private val edited = MutableLiveData(empty)
+    /*val data: Flow<FeedModel> =
+        repository.data.map { FeedModel(it, it.isEmpty()) }*/
+    val data: LiveData<FeedModel> =
+        repository.data.map {list: List<Post> -> FeedModel(list, list.isEmpty()) }
+            .catch { it.printStackTrace() }
+            .asLiveData(Dispatchers.Default)
+
+    /*val data: LiveData<FeedModel> =
+        repository.data.asFlow().combine(repository.isEmpty().asFlow(), ::FeedModel)
+            .asLiveData()*/
+
+    private val edited = MutableStateFlow(empty)
     private val _postCreated = SingleLiveEvent<Unit>()
     val postCreated: LiveData<Unit>
         get() = _postCreated
+    
+    private val _shouldScrollToTop = SingleLiveEvent<Unit>()
+    val shouldScrollToTop: LiveData<Unit>
+        get() = _shouldScrollToTop
+
+    private val _ignoreNewerUntil = MutableStateFlow(0L)
+    
+    val newerCount = data.switchMap { feedModel ->
+        val rawNewerCount = repository.getNewer(feedModel.posts.firstOrNull()?.id ?: 0)
+        combine(rawNewerCount, _ignoreNewerUntil) { count, ignoreUntil ->
+            val currentTime = System.currentTimeMillis()
+            if (currentTime < ignoreUntil) {
+                0
+            } else {
+                count
+            }
+        }.asLiveData(Dispatchers.Default)
+    }
 
     init {
         loadPosts()
@@ -41,12 +72,12 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     fun loadPosts() {
         viewModelScope.launch {
-            _state.postValue(FeedModelState(loading = true))
+            _state.value = FeedModelState(loading = true)
             try {
                 repository.getAllAsync()
-                _state.postValue(FeedModelState())
+                _state.value = FeedModelState()
             } catch (_: Exception) {
-                _state.postValue(FeedModelState(error = true))
+                _state.value = FeedModelState(error = true)
             }
         }
     }
@@ -58,7 +89,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 repository.like(id)
             } catch (_: Exception) {
-                _state.postValue(FeedModelState(error = true))
+                _state.value = FeedModelState(error = true)
                 ErrorHandler.handleError()
             }
         }
@@ -75,7 +106,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             try {
                 repository.removeById(id)
             } catch (_: Exception) {
-                _state.postValue(FeedModelState(error = true))
+                _state.value = FeedModelState(error = true)
                 ErrorHandler.handleError()
             }
         }
@@ -85,7 +116,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     fun changeContent(content: String) {
         val text = content.trim()
-        edited.value?.let {
+        edited.value.let {
             if (text == it.content) {
                 return@let
             }
@@ -95,12 +126,26 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     fun save() {
         viewModelScope.launch {
-            edited.value?.let {
+            edited.value.let {
                 repository.save(it)
 
                 _postCreated.postValue(Unit)
+                _shouldScrollToTop.postValue(Unit)
+                _ignoreNewerUntil.value = System.currentTimeMillis() + 15_000
             }
             edited.value = empty
+        }
+    }
+    
+    fun loadNewerPosts() {
+        viewModelScope.launch {
+            try {
+                val firstPostId = data.value?.posts?.firstOrNull()?.id ?: 0
+                repository.loadNewerPosts(firstPostId)
+                _ignoreNewerUntil.value = System.currentTimeMillis() + 15_000
+            } catch (_: Exception) {
+                _state.value = FeedModelState(error = true)
+            }
         }
     }
 

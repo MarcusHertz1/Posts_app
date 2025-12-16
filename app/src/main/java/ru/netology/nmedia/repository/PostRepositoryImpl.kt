@@ -1,7 +1,9 @@
 package ru.netology.nmedia.repository
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
 import ru.netology.nmedia.api.PostApi
 import ru.netology.nmedia.dao.PostDao
 import ru.netology.nmedia.dto.AttachmentType
@@ -11,9 +13,9 @@ import ru.netology.nmedia.entity.PostEntity
 class PostRepositoryImpl(
     private val dao: PostDao
 ) : PostRepository {
-    override val data: LiveData<List<Post>> = dao.getAll().map {
+    override val data = dao.getAll().map {
         it.map(PostEntity::toDto)
-    }
+    }/*.flowOn(Dispatchers.Default)*/
 
     override fun isEmpty() = dao.isEmpty()
 
@@ -38,6 +40,20 @@ class PostRepositoryImpl(
 
     override suspend fun getAllAsync() {
         val posts = PostApi.retrofitService.getAll()
+        dao.insert(posts.map(PostEntity::fromDto))
+    }
+
+    override fun getNewer(id: Long): Flow<Int> = flow {
+        while (true) {
+            delay(10_000)
+            val posts = PostApi.retrofitService.getNewer(id)
+            // Не добавляем посты в БД сразу, только возвращаем количество
+            emit(posts.size)
+        }
+    }/*.catch { e -> throw AppError.from(e) }*/
+    
+    override suspend fun loadNewerPosts(id: Long) {
+        val posts = PostApi.retrofitService.getNewer(id)
         dao.insert(posts.map(PostEntity::fromDto))
     }
 

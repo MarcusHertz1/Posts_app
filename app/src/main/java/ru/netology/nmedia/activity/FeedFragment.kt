@@ -9,7 +9,11 @@ import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import kotlinx.coroutines.launch
 import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.PostAdapter
 import ru.netology.nmedia.viewmodel.PostViewModel
@@ -98,12 +102,45 @@ class FeedFragment : Fragment() {
             adapter.submitList(state.posts)
             binding.empty.isVisible = state.empty
         }
+        
+        viewModel.shouldScrollToTop.observe(viewLifecycleOwner) {
+            // Используем post() для выполнения скролла после обновления списка
+            binding.list.post {
+                binding.list.smoothScrollToPosition(0)
+            }
+        }
 
-        viewModel.state.observe(viewLifecycleOwner) { state ->
+        viewModel.newerCount.observe(viewLifecycleOwner) { count ->
+            if (count != 0) {
+                binding.newer.isVisible = true
+                binding.newer.setOnClickListener {
+                    binding.newer.isVisible = false
+                    viewModel.loadNewerPosts()
+                    // Используем post() для выполнения скролла после обновления списка
+                    binding.list.post {
+                        binding.list.smoothScrollToPosition(0)
+                    }
+                }
+            } else {
+                binding.newer.isVisible = false
+            }
+        }
+
+        /*viewModel.state.observe(viewLifecycleOwner) { state ->
             //binding.progress.isVisible = state.loading
             errorMergeBinding.errorGroup.isVisible = state.error
             binding.swipeRefresh.isRefreshing = state.loading
+        }*/
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect { state ->
+                    //binding.progress.isVisible = state.loading
+                    errorMergeBinding.errorGroup.isVisible = state.error
+                    binding.swipeRefresh.isRefreshing = state.loading
+                }
+            }
         }
+
 
         binding.swipeRefresh.setOnRefreshListener {
             viewModel.loadPosts()
