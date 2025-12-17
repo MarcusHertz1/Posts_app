@@ -47,11 +47,10 @@ class PostRepositoryImpl(
         while (true) {
             delay(10_000)
             val posts = PostApi.retrofitService.getNewer(id)
-            // Не добавляем посты в БД сразу, только возвращаем количество
             emit(posts.size)
         }
     }/*.catch { e -> throw AppError.from(e) }*/
-    
+
     override suspend fun loadNewerPosts(id: Long) {
         val posts = PostApi.retrofitService.getNewer(id)
         dao.insert(posts.map(PostEntity::fromDto))

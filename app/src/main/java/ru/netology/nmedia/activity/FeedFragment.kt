@@ -102,9 +102,8 @@ class FeedFragment : Fragment() {
             adapter.submitList(state.posts)
             binding.empty.isVisible = state.empty
         }
-        
+
         viewModel.shouldScrollToTop.observe(viewLifecycleOwner) {
-            // Используем post() для выполнения скролла после обновления списка
             binding.list.post {
                 binding.list.smoothScrollToPosition(0)
             }
@@ -116,7 +115,6 @@ class FeedFragment : Fragment() {
                 binding.newer.setOnClickListener {
                     binding.newer.isVisible = false
                     viewModel.loadNewerPosts()
-                    // Используем post() для выполнения скролла после обновления списка
                     binding.list.post {
                         binding.list.smoothScrollToPosition(0)
                     }
@@ -126,11 +124,6 @@ class FeedFragment : Fragment() {
             }
         }
 
-        /*viewModel.state.observe(viewLifecycleOwner) { state ->
-            //binding.progress.isVisible = state.loading
-            errorMergeBinding.errorGroup.isVisible = state.error
-            binding.swipeRefresh.isRefreshing = state.loading
-        }*/
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect { state ->
@@ -140,7 +133,6 @@ class FeedFragment : Fragment() {
                 }
             }
         }
-
 
         binding.swipeRefresh.setOnRefreshListener {
             viewModel.loadPosts()
