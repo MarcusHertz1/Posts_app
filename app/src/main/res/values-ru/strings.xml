@@ -35,5 +35,6 @@
     <string name="logout">Logout</string>
     <string name="sing_in">Sing In</string>
     <string name="sing_up">Sing Up</string>
+    <string name="sign_in">Sign In</string>
 
 </resources>
