@@ -159,7 +159,7 @@ class PostRepositoryImpl(
                 it
             } else {
                 val filename = if (it.contains(".")) it else "$it.jpg"
-                "${PostApi.MEDIA_URL}/images/$filename"
+                "${PostApi.MEDIA_URL}/media/$filename"
             }
         }
     }

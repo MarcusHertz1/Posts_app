@@ -6,6 +6,12 @@
     app:startDestination="@id/feedFragment">
 
     <fragment
+        android:id="@+id/viewingImagesFragment"
+        android:name="ru.netology.nmedia.activity.ViewingImagesFragment"
+        android:label="fragment_viewing_images"
+        tools:layout="@layout/fragment_viewing_images" />
+
+    <fragment
         android:id="@+id/feedFragment"
         android:name="ru.netology.nmedia.activity.FeedFragment"
         android:label="fragment_feed"
@@ -16,6 +22,9 @@
         <action
             android:id="@+id/action_feedFragment_to_postFragment"
             app:destination="@id/postFragment" />
+        <action
+            android:id="@+id/action_feedFragment_to_viewingImagesFragment"
+            app:destination="@id/viewingImagesFragment" />
     </fragment>
     <fragment
         android:id="@+id/newPostFragment"
@@ -30,5 +39,8 @@
         <action
             android:id="@+id/action_postFragment_to_newPostFragment"
             app:destination="@id/newPostFragment" />
+        <action
+            android:id="@+id/action_postFragment_to_viewingImagesFragment"
+            app:destination="@id/viewingImagesFragment" />
     </fragment>
 </navigation>

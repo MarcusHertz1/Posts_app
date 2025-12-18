@@ -1,5 +1,6 @@
 package ru.netology.nmedia.adapter
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,6 +25,7 @@ interface OnInteractionListener{
     fun onShare (post: Post)
     fun onPlayVideo (post: Post)
     fun onPostClick (post: Post) {}
+    fun onImageClick (imageUrl: String) {}
 }
 
 class PostAdapter(
@@ -75,6 +77,8 @@ class PostViewHolder(
         }
 
         val avatarUrl = getAvatarUrl(post)
+
+        Log.d("AvatarDebug", "post=${post.id}, avatarUrl=$avatarUrl")
         Glide.with(avatar.context)
             .load(avatarUrl)
             .placeholder(R.drawable.ic_netology)
@@ -84,6 +88,8 @@ class PostViewHolder(
             .into(avatar)
 
         val imageUrl = getImageUrl(post)
+
+        Log.d("AvatarDebug", "post=${post.id}, imageUrl=$imageUrl")
         if (imageUrl != null) {
             Glide.with(ivImagePreview.context)
                 .load(imageUrl)
@@ -91,6 +97,9 @@ class PostViewHolder(
                 .timeout(10_000)
                 .into(ivImagePreview)
             imagePreview.visibility = View.VISIBLE
+            ivImagePreview.setOnClickListener {
+                onInteractionListener.onImageClick(imageUrl)
+            }
         } else {
             imagePreview.visibility = View.GONE
         }

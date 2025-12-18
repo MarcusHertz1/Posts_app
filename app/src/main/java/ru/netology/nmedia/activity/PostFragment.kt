@@ -16,6 +16,7 @@ import ru.netology.nmedia.adapter.PostViewHolder
 import ru.netology.nmedia.databinding.FragmentPostBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.util.LongArg
+import ru.netology.nmedia.util.StringsArg
 import ru.netology.nmedia.viewmodel.PostViewModel
 
 class PostFragment : Fragment() {
@@ -65,6 +66,14 @@ class PostFragment : Fragment() {
                     startActivity(intent)
                 }
             }
+
+            override fun onImageClick(imageUrl: String) {
+                findNavController().navigate(
+                    R.id.action_postFragment_to_viewingImagesFragment,
+                    Bundle().apply {
+                        this.imageUrl = imageUrl
+                    })
+            }
         }
 
         val holder = PostViewHolder(
@@ -90,5 +99,6 @@ class PostFragment : Fragment() {
 
     companion object {
         var Bundle.postId by LongArg
+        var Bundle.imageUrl by StringsArg
     }
 }
