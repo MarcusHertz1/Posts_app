@@ -31,4 +31,7 @@
     <string name="image_preview" />
     <string name="new_posts">New posts</string>
     <string name="image_pick_error">Image pick error</string>
+    <string name="logout">Logout</string>
+    <string name="sing_in">Sing In</string>
+    <string name="sing_up">Sing Up</string>
 </resources>

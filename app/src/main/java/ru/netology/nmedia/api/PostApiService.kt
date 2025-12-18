@@ -15,6 +15,7 @@ import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
 import ru.netology.nmedia.BuildConfig
+import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.dto.Media
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.util.ErrorHandler
@@ -30,8 +31,24 @@ private val errorInterceptor = Interceptor { chain ->
     response
 }
 
+private val logging = HttpLoggingInterceptor().apply {
+    if (BuildConfig.DEBUG) {
+        level = HttpLoggingInterceptor.Level.BODY
+    }
+}
+
 private val okHttpClient = OkHttpClient
     .Builder()
+    .addInterceptor { chain ->
+        val request = AppAuth.getInstance().data.value?.let { token ->
+            chain.request().newBuilder()
+                .addHeader("Authorization", token.token)
+                .build()
+        }?: chain.request()
+
+        chain.proceed(request)
+    }
+    .addInterceptor(logging)
     .connectTimeout(30, TimeUnit.SECONDS)
     .addInterceptor(errorInterceptor)
     .apply {

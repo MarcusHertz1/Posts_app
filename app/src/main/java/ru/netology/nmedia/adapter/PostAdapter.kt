@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -75,6 +76,7 @@ class PostViewHolder(
             isChecked = post.likedByMe
             text = formatNumber(post.likes)
         }
+        menu.isVisible = post.ownedByMe
 
         val avatarUrl = getAvatarUrl(post)
 

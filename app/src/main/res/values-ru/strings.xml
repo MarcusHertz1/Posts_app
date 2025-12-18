@@ -32,5 +32,8 @@
     <string name="image_preview">Превью изображения</string>
     <string name="new_posts">Новые посты</string>
     <string name="image_pick_error">Image pick error</string>
+    <string name="logout">Logout</string>
+    <string name="sing_in">Sing In</string>
+    <string name="sing_up">Sing Up</string>
 
 </resources>

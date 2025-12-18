@@ -10,13 +10,16 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
+import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModel
@@ -35,22 +38,25 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     private val _state = MutableStateFlow(FeedModelState())
     val state: StateFlow<FeedModelState> = _state.asStateFlow()
 
-    /*val data: Flow<FeedModel> =
-        repository.data.map { FeedModel(it, it.isEmpty()) }*/
+    @OptIn(ExperimentalCoroutinesApi::class)
     val data: LiveData<FeedModel> =
-        repository.data.map {list: List<Post> -> FeedModel(list, list.isEmpty()) }
-            .catch { it.printStackTrace() }
+        AppAuth.getInstance().data.flatMapLatest { token ->
+            repository.data
+                .map { posts ->
+                    posts.map { post ->
+                        post.copy(ownedByMe = post.authorId == token?.id)
+                    }
+                }
+                .map { list: List<Post> -> FeedModel(list, list.isEmpty()) }
+                .catch { it.printStackTrace() }
+        }
             .asLiveData(Dispatchers.Default)
-
-    /*val data: LiveData<FeedModel> =
-        repository.data.asFlow().combine(repository.isEmpty().asFlow(), ::FeedModel)
-            .asLiveData()*/
 
     private val edited = MutableStateFlow(empty)
     private val _postCreated = SingleLiveEvent<Unit>()
     val postCreated: LiveData<Unit>
         get() = _postCreated
-    
+
     private val _shouldScrollToTop = SingleLiveEvent<Unit>()
     val shouldScrollToTop: LiveData<Unit>
         get() = _shouldScrollToTop
@@ -60,7 +66,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     private val _photo = MutableLiveData<PhotoModel?>()
     val photo: LiveData<PhotoModel?>
         get() = _photo
-    
+
     val newerCount = data.switchMap { feedModel ->
         val rawNewerCount = repository.getNewer(feedModel.posts.firstOrNull()?.id ?: 0)
         combine(rawNewerCount, _ignoreNewerUntil) { count, ignoreUntil ->
@@ -147,7 +153,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             edited.value = empty
         }
     }
-    
+
     fun loadNewerPosts() {
         viewModelScope.launch {
             try {
@@ -172,6 +178,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         val empty = Post(
             id = 0,
             author = "",
+            authorId = 0,
             content = "",
             published = "",
             likes = 0,
