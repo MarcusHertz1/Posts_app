@@ -14,7 +14,7 @@ import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
 
 typealias FormatNumber = (number: Long) -> String
-typealias GetAvatarUrl = (post: Post) -> String
+typealias GetAvatarUrl = (post: Post) -> String?
 typealias GetImageUrl = (post: Post) -> String?
 
 interface OnInteractionListener{

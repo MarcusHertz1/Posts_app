@@ -2,6 +2,7 @@ package ru.netology.nmedia.repository
 
 import kotlinx.coroutines.flow.Flow
 import ru.netology.nmedia.dto.Post
+import java.io.File
 
 interface PostRepository {
     val data: Flow<List<Post>>
@@ -12,10 +13,10 @@ interface PostRepository {
     fun formatShortNumber(value: Long): String
     fun share(id: Long)
     suspend fun removeById(id: Long)
-    suspend fun save(post: Post): Post
+    suspend fun save(post: Post, photo: File? = null): Post
     suspend fun getById(id: Long): Post
     suspend fun getAllAsync()
-    fun getAvatarUrl(post: Post): String
+    fun getAvatarUrl(post: Post): String?
     fun getImageUrl(post: Post): String?
 
 }

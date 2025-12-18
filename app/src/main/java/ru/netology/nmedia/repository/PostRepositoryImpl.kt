@@ -1,14 +1,20 @@
 package ru.netology.nmedia.repository
 
+import android.util.Log
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import ru.netology.nmedia.api.PostApi
 import ru.netology.nmedia.dao.PostDao
+import ru.netology.nmedia.dto.Attachment
 import ru.netology.nmedia.dto.AttachmentType
+import ru.netology.nmedia.dto.Media
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.entity.PostEntity
+import java.io.File
 
 class PostRepositoryImpl(
     private val dao: PostDao
@@ -56,11 +62,29 @@ class PostRepositoryImpl(
         dao.insert(posts.map(PostEntity::fromDto))
     }
 
-    override suspend fun save(post: Post): Post {
-        val postFromServer = PostApi.retrofitService.save(post)
+    override suspend fun save(post: Post, photo: File?): Post {
+        val media = photo?.let {
+            upload(it)
+        }
+        val postWithAttachment = post.copy(
+            attachment = media?.let {
+                Attachment(url = it.id, type = AttachmentType.IMAGE)
+            }
+        )
+        val postFromServer = PostApi.retrofitService.save(postWithAttachment)
         dao.insert(PostEntity.fromDto(postFromServer))
         return postFromServer
     }
+
+    private suspend fun upload(file: File): Media =
+        PostApi.retrofitService.upload(
+            MultipartBody.Part.createFormData(
+                "file",
+                file.name,
+                file.asRequestBody()
+            )
+        )
+
 
     override fun formatShortNumber(value: Long): String {
         return when {
@@ -108,7 +132,16 @@ class PostRepositoryImpl(
         return post
     }
 
-    override fun getAvatarUrl(post: Post): String {
+    override fun getAvatarUrl(post: Post): String? {
+        val avatar = post.authorAvatar ?: return null
+        val filename = if (avatar.contains(".")) avatar else "$avatar.jpg"
+        Log.d("AvatarUrl", getAvatarUrl(post) ?: "null")
+
+        return "${PostApi.MEDIA_URL}/avatars/$filename"
+    }
+
+
+    /*override fun getAvatarUrl(post: Post): String {
         return post.authorAvatar?.let {
             val filename = if (it.contains(".")) it else "$it.jpg"
             "${PostApi.BASE_URL}/avatars/$filename"
@@ -120,7 +153,7 @@ class PostRepositoryImpl(
                 .take(20)
             "${PostApi.BASE_URL}/avatars/$authorKey.jpg"
         }
-    }
+    }*/
 
     override fun getImageUrl(post: Post): String? {
         val imageUrl = post.attachment?.takeIf { it.type == AttachmentType.IMAGE }?.url
@@ -129,7 +162,7 @@ class PostRepositoryImpl(
                 it
             } else {
                 val filename = if (it.contains(".")) it else "$it.jpg"
-                "${PostApi.BASE_URL}/images/$filename"
+                "${PostApi.MEDIA_URL}/images/$filename"
             }
         }
     }

@@ -31,5 +31,6 @@
     <string name="no_posts">Нет постов</string>
     <string name="image_preview">Превью изображения</string>
     <string name="new_posts">Новые посты</string>
+    <string name="image_pick_error">Image pick error</string>
 
 </resources>
