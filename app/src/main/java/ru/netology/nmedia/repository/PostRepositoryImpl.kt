@@ -1,6 +1,5 @@
 package ru.netology.nmedia.repository
 
-import android.util.Log
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -135,11 +134,9 @@ class PostRepositoryImpl(
     override fun getAvatarUrl(post: Post): String? {
         val avatar = post.authorAvatar ?: return null
         val filename = if (avatar.contains(".")) avatar else "$avatar.jpg"
-        Log.d("AvatarUrl", getAvatarUrl(post) ?: "null")
 
         return "${PostApi.MEDIA_URL}/avatars/$filename"
     }
-
 
     /*override fun getAvatarUrl(post: Post): String {
         return post.authorAvatar?.let {

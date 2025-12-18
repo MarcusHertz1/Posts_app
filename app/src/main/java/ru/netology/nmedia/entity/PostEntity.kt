@@ -18,6 +18,7 @@ data class PostEntity(
     val shares: Long,
     val views: Long,
     val video: String? = null,
+    val authorAvatar: String? = null,
     @Embedded
     val attachment: Attachment?
 ){
@@ -31,6 +32,7 @@ data class PostEntity(
         shares = shares,
         views = views,
         video = video,
+        authorAvatar = authorAvatar,
         attachment = attachment
     )
 
@@ -46,6 +48,7 @@ data class PostEntity(
                 shares = shares,
                 views = views,
                 video = video,
+                authorAvatar = authorAvatar,
                 attachment = attachment
             )
         }
