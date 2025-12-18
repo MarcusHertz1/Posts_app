@@ -82,6 +82,14 @@ class FeedFragment : Fragment() {
                             postId = post.id
                         })
                 }
+
+                override fun onImageClick(imageUrl: String) {
+                    findNavController().navigate(
+                        R.id.action_feedFragment_to_viewingImagesFragment,
+                        Bundle().apply {
+                            this.imageUrl = imageUrl
+                        })
+                }
             },
             formatNumber = { number ->
                 viewModel.formatShortNumber(number)
@@ -153,5 +161,6 @@ class FeedFragment : Fragment() {
     companion object {
         var Bundle.textArgs by StringsArg
         var Bundle.postId by LongArg
+        var Bundle.imageUrl by StringsArg
     }
 }
