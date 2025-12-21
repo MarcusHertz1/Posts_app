@@ -5,8 +5,13 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.MenuProvider
 import androidx.navigation.findNavController
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
@@ -14,12 +19,49 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.messaging.FirebaseMessaging
 import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.FeedFragment.Companion.textArgs
+import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.databinding.ActivityAppBinding
+import ru.netology.nmedia.viewmodel.AuthViewModel
 
 class AppActivity : AppCompatActivity() {
+
+    private val viewModel by viewModels<AuthViewModel>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestNotificationsPermission()
+
+        addMenuProvider(
+            object : MenuProvider {
+                override fun onCreateMenu(
+                    menu: Menu,
+                    menuInflater: MenuInflater
+                ) {
+                    menuInflater.inflate(R.menu.auth_menu, menu)
+                    viewModel.data.observe(this@AppActivity) {
+                        val auth = viewModel.isAuth
+                        menu.setGroupVisible(R.id.authorization, auth)
+                        menu.setGroupVisible(R.id.unauthorization, !auth)
+                    }
+                }
+
+                override fun onMenuItemSelected(menuItem: MenuItem): Boolean =
+                    when (menuItem.itemId) {
+                        R.id.singIn -> {
+                            findNavController(R.id.nav_host_fragment).navigate(R.id.signInFragment)
+                            true
+                        }
+                        R.id.singUp -> {
+                            true
+                        }
+                        R.id.logout -> {
+                            AppAuth.getInstance().removeAuth()
+                            true
+                        }
+                        else -> false
+                    }
+            }
+        )
 
         val binding = ActivityAppBinding.inflate(layoutInflater)
         setContentView(binding.root)

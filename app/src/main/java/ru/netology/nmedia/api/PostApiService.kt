@@ -9,14 +9,18 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.create
 import retrofit2.http.Body
 import retrofit2.http.DELETE
+import retrofit2.http.Field
+import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
 import ru.netology.nmedia.BuildConfig
+import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.dto.Media
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.dto.Token
 import ru.netology.nmedia.util.ErrorHandler
 import java.util.concurrent.TimeUnit
 
@@ -30,8 +34,24 @@ private val errorInterceptor = Interceptor { chain ->
     response
 }
 
+private val logging = HttpLoggingInterceptor().apply {
+    if (BuildConfig.DEBUG) {
+        level = HttpLoggingInterceptor.Level.BODY
+    }
+}
+
 private val okHttpClient = OkHttpClient
     .Builder()
+    .addInterceptor { chain ->
+        val request = AppAuth.getInstance().data.value?.let { token ->
+            chain.request().newBuilder()
+                .addHeader("Authorization", token.token)
+                .build()
+        } ?: chain.request()
+
+        chain.proceed(request)
+    }
+    .addInterceptor(logging)
     .connectTimeout(30, TimeUnit.SECONDS)
     .addInterceptor(errorInterceptor)
     .apply {
@@ -74,6 +94,13 @@ interface PostApiService {
     @Multipart
     @POST("media")
     suspend fun upload(@Part file: MultipartBody.Part): Media
+
+    @FormUrlEncoded
+    @POST("users/authentication")
+    suspend fun updateUser(
+        @Field("login") login: String,
+        @Field("pass") pass: String,
+    ): Token
 }
 
 object PostApi {
