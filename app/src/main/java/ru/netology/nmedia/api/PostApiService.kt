@@ -20,6 +20,7 @@ import ru.netology.nmedia.BuildConfig
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.dto.Media
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.dto.PushToken
 import ru.netology.nmedia.dto.Token
 import ru.netology.nmedia.util.ErrorHandler
 import java.util.concurrent.TimeUnit
@@ -101,6 +102,9 @@ interface PostApiService {
         @Field("login") login: String,
         @Field("pass") pass: String,
     ): Token
+
+    @POST("users/push-tokens")
+    suspend fun sendPushToken(@Body token: PushToken)
 }
 
 object PostApi {

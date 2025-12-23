@@ -13,6 +13,7 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.google.gson.Gson
 import ru.netology.nmedia.R
+import ru.netology.nmedia.auth.AppAuth
 import kotlin.jvm.java
 import kotlin.random.Random
 
@@ -41,8 +42,18 @@ class FCMService : FirebaseMessagingService() {
         message.data[action]?.let { actionValue ->
             try {
                 when (Action.valueOf(actionValue)) {
-                    Action.LIKE -> handleLike(gson.fromJson(message.data[content], Like::class.java))
-                    Action.POST -> handleNewPost(gson.fromJson(message.data[content], NewPost::class.java))
+                    Action.LIKE -> {
+                        val like = gson.fromJson(message.data[content], Like::class.java)
+                        if (shouldShowNotification(like.recipientId)) {
+                            handleLike(like)
+                        }
+                    }
+                    Action.POST -> {
+                        val newPost = gson.fromJson(message.data[content], NewPost::class.java)
+                        if (shouldShowNotification(newPost.recipientId)) {
+                            handleNewPost(newPost)
+                        }
+                    }
                 }
             } catch (e: IllegalArgumentException) {
                 Log.w("FCMService", "Unknown action: $actionValue", e)
@@ -50,9 +61,28 @@ class FCMService : FirebaseMessagingService() {
         }
     }
 
+    private fun shouldShowNotification(recipientId: Long?): Boolean {
+        val currentUserId = AppAuth.getInstance().data.value?.id
+
+        return when {
+            recipientId == null -> true
+            recipientId == currentUserId -> true
+            recipientId == 0L && recipientId != currentUserId -> {
+                AppAuth.getInstance().sendPushToken()
+                false
+            }
+            recipientId != 0L && recipientId != currentUserId -> {
+                AppAuth.getInstance().sendPushToken()
+                false
+            }
+            else -> false
+        }
+    }
+
     override fun onNewToken(token: String) {
         Log.i("fcm", token)
         println(token)
+        AppAuth.getInstance().sendPushToken(token)
     }
 
     private fun handleLike(content: Like) {
@@ -101,9 +131,11 @@ data class Like(
     val userName: String,
     val postId: Long,
     val postAuthor: String,
+    val recipientId: Long? = null,
 )
 
 data class NewPost(
     val userName: String,
     val postContent: String,
+    val recipientId: Long? = null,
 )

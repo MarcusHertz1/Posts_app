@@ -9,9 +9,12 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.MenuProvider
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.findNavController
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
@@ -30,6 +33,7 @@ class AppActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestNotificationsPermission()
+        enableEdgeToEdge()
 
         addMenuProvider(
             object : MenuProvider {
@@ -65,6 +69,18 @@ class AppActivity : AppCompatActivity() {
 
         val binding = ActivityAppBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, insets ->
+            val systemInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.setPadding(
+                systemInsets.left,
+                systemInsets.top,
+                systemInsets.right,
+                systemInsets.bottom,
+            )
+
+            WindowInsetsCompat.CONSUMED
+        }
 
         intent?.let {
             if (it.action != Intent.ACTION_SEND) return@let
