@@ -10,22 +10,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import ru.netology.nmedia.api.PostApi
+import ru.netology.nmedia.di.DependencyContainer
 import ru.netology.nmedia.dto.PushToken
 import ru.netology.nmedia.dto.Token
 
-class AppAuth private constructor(context: Context) {
+class AppAuth(context: Context) {
     companion object {
         private const val ID_KEY = "ID_KEY"
         private const val TOKEN_KEY = "TOKEN_KEY"
-        private var INSTANCE: AppAuth? = null
-        fun init(context: Context) {
-            INSTANCE = AppAuth(context)
-        }
-
-        fun getInstance() = requireNotNull(INSTANCE) {
-            "Need call init() first"
-        }
     }
 
     private val prefs =
@@ -62,7 +54,7 @@ class AppAuth private constructor(context: Context) {
     fun sendPushToken(token: String? = null) {
         CoroutineScope(Dispatchers.Default).launch {
             try {
-                PostApi.retrofitService.sendPushToken(
+                DependencyContainer.getInstance().apiService.sendPushToken(
                     PushToken(
                         token ?: Firebase.messaging.token.await()
                     )

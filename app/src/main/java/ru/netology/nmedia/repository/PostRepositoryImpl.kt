@@ -6,7 +6,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
-import ru.netology.nmedia.api.PostApi
+import ru.netology.nmedia.api.MEDIA_URL
+import ru.netology.nmedia.api.PostApiService
 import ru.netology.nmedia.dao.PostDao
 import ru.netology.nmedia.dto.Attachment
 import ru.netology.nmedia.dto.AttachmentType
@@ -16,7 +17,8 @@ import ru.netology.nmedia.entity.PostEntity
 import java.io.File
 
 class PostRepositoryImpl(
-    private val dao: PostDao
+    private val dao: PostDao,
+    private val apiService: PostApiService
 ) : PostRepository {
     override val data = dao.getAll().map {
         it.map(PostEntity::toDto)
@@ -31,9 +33,9 @@ class PostRepositoryImpl(
 
         return try {
             val result = if (local.likedByMe) {
-                PostApi.retrofitService.unlike(id)
+               apiService.unlike(id)
             } else {
-                PostApi.retrofitService.like(id)
+               apiService.like(id)
             }
             dao.insert(PostEntity.fromDto(result))
             result
@@ -44,20 +46,20 @@ class PostRepositoryImpl(
     }
 
     override suspend fun getAllAsync() {
-        val posts = PostApi.retrofitService.getAll()
+        val posts =apiService.getAll()
         dao.insert(posts.map(PostEntity::fromDto))
     }
 
     override fun getNewer(id: Long): Flow<Int> = flow {
         while (true) {
             delay(10_000)
-            val posts = PostApi.retrofitService.getNewer(id)
+            val posts =apiService.getNewer(id)
             emit(posts.size)
         }
     }/*.catch { e -> throw AppError.from(e) }*/
 
     override suspend fun loadNewerPosts(id: Long) {
-        val posts = PostApi.retrofitService.getNewer(id)
+        val posts =apiService.getNewer(id)
         dao.insert(posts.map(PostEntity::fromDto))
     }
 
@@ -70,13 +72,13 @@ class PostRepositoryImpl(
                 Attachment(url = it.id, type = AttachmentType.IMAGE)
             }
         )
-        val postFromServer = PostApi.retrofitService.save(postWithAttachment)
+        val postFromServer =apiService.save(postWithAttachment)
         dao.insert(PostEntity.fromDto(postFromServer))
         return postFromServer
     }
 
     private suspend fun upload(file: File): Media =
-        PostApi.retrofitService.upload(
+       apiService.upload(
             MultipartBody.Part.createFormData(
                 "file",
                 file.name,
@@ -116,7 +118,7 @@ class PostRepositoryImpl(
         dao.removeById(id)
 
         try {
-            PostApi.retrofitService.removeById(id)
+           apiService.removeById(id)
         } catch (e: Exception) {
             if (existing != null) {
                 dao.insert(existing)
@@ -126,7 +128,7 @@ class PostRepositoryImpl(
     }
 
     override suspend fun getById(id: Long): Post {
-        val post = PostApi.retrofitService.getById(id)
+        val post =apiService.getById(id)
         dao.insert(PostEntity.fromDto(post))
         return post
     }
@@ -135,7 +137,7 @@ class PostRepositoryImpl(
         val avatar = post.authorAvatar ?: return null
         val filename = if (avatar.contains(".")) avatar else "$avatar.jpg"
 
-        return "${PostApi.MEDIA_URL}/avatars/$filename"
+        return "${MEDIA_URL}/avatars/$filename"
     }
 
     /*override fun getAvatarUrl(post: Post): String {
@@ -159,7 +161,7 @@ class PostRepositoryImpl(
                 it
             } else {
                 val filename = if (it.contains(".")) it else "$it.jpg"
-                "${PostApi.MEDIA_URL}/media/$filename"
+                "${MEDIA_URL}/media/$filename"
             }
         }
     }
