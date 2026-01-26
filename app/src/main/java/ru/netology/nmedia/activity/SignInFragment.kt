@@ -9,11 +9,21 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import ru.netology.nmedia.databinding.FragmentSignInBinding
+import ru.netology.nmedia.di.DependencyContainer
 import ru.netology.nmedia.viewmodel.SignInViewModel
+import ru.netology.nmedia.viewmodel.ViewModelFactory
 
 class SignInFragment : Fragment() {
-
-    private val viewModel: SignInViewModel by viewModels()
+    private val dependencyContainer = DependencyContainer.getInstance()
+    private val viewModel: SignInViewModel by viewModels(
+        factoryProducer = {
+            ViewModelFactory(
+                repository = dependencyContainer.repository,
+                appAuth = dependencyContainer.appAuth,
+                apiService = dependencyContainer.apiService
+            )
+        }
+    )
 
     override fun onCreateView(
         inflater: LayoutInflater,

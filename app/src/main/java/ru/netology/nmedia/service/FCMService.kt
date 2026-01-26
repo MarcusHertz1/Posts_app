@@ -13,12 +13,13 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.google.gson.Gson
 import ru.netology.nmedia.R
-import ru.netology.nmedia.auth.AppAuth
+import ru.netology.nmedia.di.DependencyContainer
 import kotlin.jvm.java
 import kotlin.random.Random
 
 class FCMService : FirebaseMessagingService() {
 
+    private val dependencyContainer = DependencyContainer.getInstance()
     private val action = "action"
     private val content = "content"
     private val channelId = "remote"
@@ -62,17 +63,17 @@ class FCMService : FirebaseMessagingService() {
     }
 
     private fun shouldShowNotification(recipientId: Long?): Boolean {
-        val currentUserId = AppAuth.getInstance().data.value?.id
+        val currentUserId = dependencyContainer.appAuth.data.value?.id
 
         return when {
             recipientId == null -> true
             recipientId == currentUserId -> true
             recipientId == 0L && recipientId != currentUserId -> {
-                AppAuth.getInstance().sendPushToken()
+                dependencyContainer.appAuth.sendPushToken()
                 false
             }
             recipientId != 0L && recipientId != currentUserId -> {
-                AppAuth.getInstance().sendPushToken()
+                dependencyContainer.appAuth.sendPushToken()
                 false
             }
             else -> false
@@ -82,7 +83,7 @@ class FCMService : FirebaseMessagingService() {
     override fun onNewToken(token: String) {
         Log.i("fcm", token)
         println(token)
-        AppAuth.getInstance().sendPushToken(token)
+        dependencyContainer.appAuth.sendPushToken(token)
     }
 
     private fun handleLike(content: Like) {

@@ -22,13 +22,22 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.messaging.FirebaseMessaging
 import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.FeedFragment.Companion.textArgs
-import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.databinding.ActivityAppBinding
+import ru.netology.nmedia.di.DependencyContainer
 import ru.netology.nmedia.viewmodel.AuthViewModel
+import ru.netology.nmedia.viewmodel.ViewModelFactory
 
 class AppActivity : AppCompatActivity() {
-
-    private val viewModel by viewModels<AuthViewModel>()
+    private val dependencyContainer = DependencyContainer.getInstance()
+    private val viewModel by viewModels<AuthViewModel>(
+        factoryProducer = {
+            ViewModelFactory(
+                repository = dependencyContainer.repository,
+                appAuth = dependencyContainer.appAuth,
+                apiService = dependencyContainer.apiService
+            )
+        }
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,7 +68,7 @@ class AppActivity : AppCompatActivity() {
                             true
                         }
                         R.id.logout -> {
-                            AppAuth.getInstance().removeAuth()
+                            dependencyContainer.appAuth.removeAuth()
                             true
                         }
                         else -> false

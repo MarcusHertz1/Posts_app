@@ -1,5 +1,6 @@
 package ru.netology.nmedia.activity
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -15,6 +16,7 @@ import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.MutableLiveData
 import androidx.navigation.fragment.findNavController
 import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.FeedFragment.Companion.postId
@@ -23,11 +25,23 @@ import ru.netology.nmedia.databinding.FragmentNewPostBinding
 import ru.netology.nmedia.viewmodel.PostViewModel
 import kotlin.getValue
 import com.github.dhaval2404.imagepicker.ImagePicker
-import com.github.dhaval2404.imagepicker.constant.ImageProvider
+import ru.netology.nmedia.di.DependencyContainer
+import ru.netology.nmedia.viewmodel.ViewModelFactory
 
 class NewPostFragment : Fragment() {
-
-    private val viewModel: PostViewModel by viewModels(ownerProducer = ::requireParentFragment)
+    private val prefs = requireContext().getSharedPreferences("draft", Context.MODE_PRIVATE)
+    private val draft = MutableLiveData<String?>(prefs.getString("draft", null))
+    private val dependencyContainer = DependencyContainer.getInstance()
+    private val viewModel: PostViewModel by viewModels(
+        ownerProducer = ::requireParentFragment,
+        factoryProducer = {
+            ViewModelFactory(
+                repository = dependencyContainer.repository,
+                appAuth = dependencyContainer.appAuth,
+                apiService = dependencyContainer.apiService
+            )
+        }
+    )
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -40,6 +54,7 @@ class NewPostFragment : Fragment() {
             false
         )
 
+
         val postId = arguments?.postId
         val content = arguments?.textArgs
         if (postId != null && content != null) {
@@ -48,7 +63,7 @@ class NewPostFragment : Fragment() {
             binding.edit.setText(content)
         } else {
             viewModel.edit(viewModel.empty)
-            viewModel.draft.value?.let { draft ->
+            draft.value?.let { draft ->
                 if (draft.isNotEmpty()) {
                     viewModel.changeContent(draft)
                     binding.edit.setText(draft)

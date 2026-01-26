@@ -4,8 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import ru.netology.nmedia.auth.AppAuth
 
-class AuthViewModel : ViewModel() {
-    val data = AppAuth.getInstance().data.asLiveData()
+class AuthViewModel(
+    private val appAuth: AppAuth
+) : ViewModel() {
+    val data = appAuth.data.asLiveData()
     val isAuth: Boolean
-        get() = AppAuth.getInstance().data.value !=null
+        get() = appAuth.data.value !=null
 }

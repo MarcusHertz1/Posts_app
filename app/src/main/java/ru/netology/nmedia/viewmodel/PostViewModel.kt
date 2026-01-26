@@ -1,11 +1,9 @@
 package ru.netology.nmedia.viewmodel
 
-import android.app.Application
-import android.content.Context
 import android.net.Uri
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
@@ -20,27 +18,25 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.auth.AppAuth
-import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.model.FeedModelState
 import ru.netology.nmedia.model.PhotoModel
 import ru.netology.nmedia.repository.PostRepository
-import ru.netology.nmedia.repository.PostRepositoryImpl
 import ru.netology.nmedia.util.ErrorHandler
 import ru.netology.nmedia.util.SingleLiveEvent
 import java.io.File
 
-class PostViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository: PostRepository =
-        PostRepositoryImpl(AppDb.getInstance(application).postDao())
-    private val prefs = application.getSharedPreferences("draft", Context.MODE_PRIVATE)
+class PostViewModel(
+    private val repository: PostRepository,
+    appAuth: AppAuth,
+) : ViewModel() {
     private val _state = MutableStateFlow(FeedModelState())
     val state: StateFlow<FeedModelState> = _state.asStateFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val data: LiveData<FeedModel> =
-        AppAuth.getInstance().data.flatMapLatest { token ->
+        appAuth.data.flatMapLatest { token ->
             repository.data
                 .map { posts ->
                     posts.map { post ->
@@ -98,8 +94,6 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
-
-    val draft = MutableLiveData<String?>(prefs.getString("draft", null))
 
     fun like(id: Long) {
         viewModelScope.launch {
