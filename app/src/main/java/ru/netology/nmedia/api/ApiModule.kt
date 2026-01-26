@@ -1,7 +1,9 @@
-package ru.netology.nmedia.di
+package ru.netology.nmedia.api
 
-import android.content.Context
-import androidx.room.Room
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -9,27 +11,16 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.create
 import ru.netology.nmedia.BuildConfig
-import ru.netology.nmedia.api.PostApiService
 import ru.netology.nmedia.auth.AppAuth
-import ru.netology.nmedia.db.AppDb
-import ru.netology.nmedia.repository.PostRepositoryImpl
 import ru.netology.nmedia.util.ErrorHandler
 import java.util.concurrent.TimeUnit
+import javax.inject.Singleton
 
-class DependencyContainer(
-    private val context: Context
-) {
-
+@InstallIn(SingletonComponent::class)
+@Module
+class ApiModule {
     companion object {
         private const val BASE_URL = "http://10.0.2.2:9999/api/"
-        @Volatile
-        private var instance: DependencyContainer? = null
-
-        fun initApp(context: Context) {
-            instance = DependencyContainer(context)
-        }
-
-        fun getInstance(): DependencyContainer = instance!!
     }
 
     private val errorInterceptor = Interceptor { chain ->
@@ -40,15 +31,20 @@ class DependencyContainer(
         response
     }
 
-    private val logging = HttpLoggingInterceptor().apply {
+    @Provides
+    @Singleton
+    fun provideLogging(): HttpLoggingInterceptor = HttpLoggingInterceptor().apply {
         if (BuildConfig.DEBUG) {
             level = HttpLoggingInterceptor.Level.BODY
         }
     }
 
-    val appAuth = AppAuth(context)
-
-    private val okHttpClient = OkHttpClient
+    @Provides
+    @Singleton
+    fun provideOkHttp(
+        logging: HttpLoggingInterceptor,
+        appAuth: AppAuth
+    ) = OkHttpClient
         .Builder()
         .addInterceptor { chain ->
             val request = appAuth.data.value?.let { token ->
@@ -71,23 +67,19 @@ class DependencyContainer(
         }
         .build()
 
-    private val retrofit = Retrofit.Builder()
+    @Provides
+    @Singleton
+    fun provideRetrofit(
+        okHttpClient: OkHttpClient,
+    ): Retrofit = Retrofit.Builder()
         .client(okHttpClient)
         .addConverterFactory(GsonConverterFactory.create())
         .baseUrl(BASE_URL)
         .build()
 
-    private val appBd = Room
-        .databaseBuilder(context, AppDb::class.java, "app.db")
-        .fallbackToDestructiveMigration()
-        .build()
-
-    private val postDao = appBd.postDao()
-    val apiService =  retrofit.create<PostApiService>()
-
-    val repository = PostRepositoryImpl(
-        dao = postDao,
-        apiService = apiService
-    )
-
+    @Provides
+    @Singleton
+    fun provideApiService(
+        retrofit: Retrofit
+    ): PostApiService = retrofit.create<PostApiService>()
 }

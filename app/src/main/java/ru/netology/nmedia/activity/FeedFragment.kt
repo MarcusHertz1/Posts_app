@@ -8,11 +8,12 @@ import android.view.ViewGroup
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.PostAdapter
@@ -20,25 +21,14 @@ import ru.netology.nmedia.viewmodel.PostViewModel
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.databinding.ErrorViewBinding
 import ru.netology.nmedia.databinding.FragmentFeedBinding
-import ru.netology.nmedia.di.DependencyContainer
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.util.LongArg
 import ru.netology.nmedia.util.StringsArg
-import ru.netology.nmedia.viewmodel.ViewModelFactory
 
+@AndroidEntryPoint
 class FeedFragment : Fragment() {
 
-    private val dependencyContainer = DependencyContainer.getInstance()
-    private val viewModel: PostViewModel by viewModels(
-        ownerProducer = ::requireParentFragment,
-        factoryProducer = {
-            ViewModelFactory(
-                repository = dependencyContainer.repository,
-                appAuth = dependencyContainer.appAuth,
-                apiService = dependencyContainer.apiService
-            )
-        }
-    )
+    private val viewModel: PostViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
