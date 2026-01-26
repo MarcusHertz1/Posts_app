@@ -32,6 +32,10 @@ import javax.inject.Inject
 class AppActivity : AppCompatActivity() {
 
     @Inject
+    lateinit var firebaseMessaging: FirebaseMessaging
+    @Inject
+    lateinit var googleApiAvailability: GoogleApiAvailability
+    @Inject
     lateinit var appAuth: AppAuth
     private val viewModel by viewModels<AuthViewModel>()
 
@@ -127,7 +131,7 @@ class AppActivity : AppCompatActivity() {
     }
 
     private fun checkGoogleApiAvailability() {
-        with(GoogleApiAvailability.getInstance()) {
+        with(googleApiAvailability) {
             val code = isGooglePlayServicesAvailable(this@AppActivity)
             if (code == ConnectionResult.SUCCESS) {
                 return@with
@@ -139,7 +143,7 @@ class AppActivity : AppCompatActivity() {
             Toast.makeText(this@AppActivity, getString(R.string.google_api_unavailable), Toast.LENGTH_LONG).show()
         }
 
-        FirebaseMessaging.getInstance().token.addOnSuccessListener {
+        firebaseMessaging.token.addOnSuccessListener {
             println(it)
         }
     }
