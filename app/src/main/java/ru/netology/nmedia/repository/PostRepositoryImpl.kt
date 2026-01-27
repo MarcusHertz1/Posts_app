@@ -5,6 +5,7 @@ import androidx.paging.PagingConfig
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.lastOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import ru.netology.nmedia.api.MEDIA_URL
@@ -36,9 +37,9 @@ class PostRepositoryImpl @Inject constructor(
 
         return try {
             val result = if (local.likedByMe) {
-               apiService.unlike(id)
+                apiService.unlike(id)
             } else {
-               apiService.like(id)
+                apiService.like(id)
             }
             dao.insert(PostEntity.fromDto(result))
             result
@@ -49,20 +50,23 @@ class PostRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getAllAsync() {
-        val posts =apiService.getAll()
-        dao.insert(posts.map(PostEntity::fromDto))
+        val cashedPosts = dao.getAll().lastOrNull()
+        if (cashedPosts.isNullOrEmpty()) {
+            val posts = apiService.getAll()
+            dao.insert(posts.map(PostEntity::fromDto))
+        }
     }
 
     override fun getNewer(id: Long): Flow<Int> = flow {
         while (true) {
             delay(10_000)
-            val posts =apiService.getNewer(id)
+            val posts = apiService.getNewer(id)
             emit(posts.size)
         }
     }/*.catch { e -> throw AppError.from(e) }*/
 
     override suspend fun loadNewerPosts(id: Long) {
-        val posts =apiService.getNewer(id)
+        val posts = apiService.getNewer(id)
         dao.insert(posts.map(PostEntity::fromDto))
     }
 
@@ -75,13 +79,13 @@ class PostRepositoryImpl @Inject constructor(
                 Attachment(url = it.id, type = AttachmentType.IMAGE)
             }
         )
-        val postFromServer =apiService.save(postWithAttachment)
+        val postFromServer = apiService.save(postWithAttachment)
         dao.insert(PostEntity.fromDto(postFromServer))
         return postFromServer
     }
 
     private suspend fun upload(file: File): Media =
-       apiService.upload(
+        apiService.upload(
             MultipartBody.Part.createFormData(
                 "file",
                 file.name,
@@ -121,7 +125,7 @@ class PostRepositoryImpl @Inject constructor(
         dao.removeById(id)
 
         try {
-           apiService.removeById(id)
+            apiService.removeById(id)
         } catch (e: Exception) {
             if (existing != null) {
                 dao.insert(existing)
@@ -130,8 +134,12 @@ class PostRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun removeAllLocal(){
+        dao.removeAll()
+    }
+
     override suspend fun getById(id: Long): Post {
-        val post =apiService.getById(id)
+        val post = apiService.getById(id)
         dao.insert(PostEntity.fromDto(post))
         return post
     }

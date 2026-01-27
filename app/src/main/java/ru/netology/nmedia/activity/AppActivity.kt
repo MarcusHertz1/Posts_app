@@ -15,16 +15,19 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.MenuProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.FeedFragment.Companion.textArgs
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.databinding.ActivityAppBinding
+import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.viewmodel.AuthViewModel
 import javax.inject.Inject
 
@@ -37,6 +40,8 @@ class AppActivity : AppCompatActivity() {
     lateinit var googleApiAvailability: GoogleApiAvailability
     @Inject
     lateinit var appAuth: AppAuth
+    @Inject
+    lateinit var repository: PostRepository
     private val viewModel by viewModels<AuthViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,6 +74,9 @@ class AppActivity : AppCompatActivity() {
                         }
                         R.id.logout -> {
                             appAuth.removeAuth()
+                            lifecycleScope.launch {
+                                repository.removeAllLocal()
+                            }
                             true
                         }
                         else -> false

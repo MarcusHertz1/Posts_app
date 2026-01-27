@@ -14,6 +14,7 @@ interface PostRepository {
     fun formatShortNumber(value: Long): String
     fun share(id: Long)
     suspend fun removeById(id: Long)
+    suspend fun removeAllLocal()
     suspend fun save(post: Post, photo: File? = null): Post
     suspend fun getById(id: Long): Post
     suspend fun getAllAsync()
