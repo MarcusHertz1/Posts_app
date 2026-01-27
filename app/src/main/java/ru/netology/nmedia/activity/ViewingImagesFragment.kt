@@ -8,9 +8,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nmedia.databinding.FragmentViewingImagesBinding
 import ru.netology.nmedia.util.StringsArg
 
+@AndroidEntryPoint
 class ViewingImagesFragment : Fragment() {
 
     override fun onCreateView(

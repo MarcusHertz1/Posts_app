@@ -1,15 +1,20 @@
 package ru.netology.nmedia.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import ru.netology.nmedia.api.PostApi
+import ru.netology.nmedia.api.PostApiService
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.util.SingleLiveEvent
+import javax.inject.Inject
 
-class SignInViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class SignInViewModel @Inject constructor(
+    private val apiService: PostApiService,
+    private val appAuth: AppAuth,
+) : ViewModel() {
 
     private val _authSuccess = SingleLiveEvent<Unit>()
     val authSuccess: LiveData<Unit> get() = _authSuccess
@@ -20,8 +25,8 @@ class SignInViewModel(application: Application) : AndroidViewModel(application) 
     fun authenticate(login: String, pass: String) {
         viewModelScope.launch {
             try {
-                val token = PostApi.retrofitService.updateUser(login, pass)
-                AppAuth.getInstance().setAuth(token.id, token.token)
+                val token = apiService.updateUser(login, pass)
+                appAuth.setAuth(token.id, token.token)
                 _authSuccess.postValue(Unit)
             } catch (e: Exception) {
                 _authError.postValue(e.message ?: "Ошибка аутентификации")

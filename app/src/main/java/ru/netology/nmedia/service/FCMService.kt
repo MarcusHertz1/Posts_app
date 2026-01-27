@@ -12,12 +12,18 @@ import androidx.core.app.NotificationManagerCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.google.gson.Gson
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nmedia.R
 import ru.netology.nmedia.auth.AppAuth
+import javax.inject.Inject
 import kotlin.jvm.java
 import kotlin.random.Random
 
+@AndroidEntryPoint
 class FCMService : FirebaseMessagingService() {
+
+    @Inject
+    lateinit var appAuth: AppAuth
 
     private val action = "action"
     private val content = "content"
@@ -62,17 +68,17 @@ class FCMService : FirebaseMessagingService() {
     }
 
     private fun shouldShowNotification(recipientId: Long?): Boolean {
-        val currentUserId = AppAuth.getInstance().data.value?.id
+        val currentUserId = appAuth.data.value?.id
 
         return when {
             recipientId == null -> true
             recipientId == currentUserId -> true
             recipientId == 0L && recipientId != currentUserId -> {
-                AppAuth.getInstance().sendPushToken()
+                appAuth.sendPushToken()
                 false
             }
             recipientId != 0L && recipientId != currentUserId -> {
-                AppAuth.getInstance().sendPushToken()
+                appAuth.sendPushToken()
                 false
             }
             else -> false
@@ -82,7 +88,7 @@ class FCMService : FirebaseMessagingService() {
     override fun onNewToken(token: String) {
         Log.i("fcm", token)
         println(token)
-        AppAuth.getInstance().sendPushToken(token)
+        appAuth.sendPushToken(token)
     }
 
     private fun handleLike(content: Like) {
