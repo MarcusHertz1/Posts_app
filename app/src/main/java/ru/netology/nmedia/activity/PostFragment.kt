@@ -8,8 +8,12 @@ import android.view.ViewGroup
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.paging.map
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.FeedFragment.Companion.textArgs
 import ru.netology.nmedia.adapter.OnInteractionListener
@@ -35,7 +39,8 @@ class PostFragment : Fragment() {
         val listener = object : OnInteractionListener {
             override fun onEdit(post: Post) {
                 viewModel.edit(post)
-                findNavController().navigate(R.id.action_postFragment_to_newPostFragment,
+                findNavController().navigate(
+                    R.id.action_postFragment_to_newPostFragment,
                     Bundle().apply {
                         postId = post.id
                         textArgs = post.content
@@ -87,12 +92,16 @@ class PostFragment : Fragment() {
         )
 
         val postId = arguments?.postId ?: throw IllegalArgumentException("Post ID is required")
-        
-        viewModel.data.observe(viewLifecycleOwner) { state ->
-            val post = state.posts.find { it.id == postId }
-            if (post != null) {
-                holder.bind(post)
+
+        lifecycleScope.launch {
+            var searchingPost: Post? = null
+            viewModel.data.collectLatest { pagingData ->
+                pagingData.map { post ->
+                    if (post.id == postId) searchingPost = post
+                    post
+                }
             }
+            searchingPost?.let { holder.bind(it) }
         }
 
         return binding.root
