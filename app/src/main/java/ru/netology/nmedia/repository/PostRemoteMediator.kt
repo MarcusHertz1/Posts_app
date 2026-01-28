@@ -27,15 +27,14 @@ class PostRemoteMediator(
     ): MediatorResult {
         try {
             val result = when (loadType) {
-                LoadType.REFRESH -> apiService.getLatest(state.config.pageSize)
+                LoadType.REFRESH -> {
+                    postRemoteKeyDao.max()?.let { maxId ->
+                        apiService.getAfter(id = maxId, count = state.config.pageSize)
+                    } ?: apiService.getLatest(state.config.pageSize)
+                }
+
                 LoadType.PREPEND -> {
-                    val id = postRemoteKeyDao.max() ?: return MediatorResult.Success(
-                        endOfPaginationReached = false
-                    )
-                    apiService.getAfter(
-                        id = id,
-                        count = state.config.pageSize
-                    )
+                    return MediatorResult.Success(endOfPaginationReached = true)
                 }
 
                 LoadType.APPEND -> {
@@ -49,42 +48,42 @@ class PostRemoteMediator(
                 }
             }
 
+            if (result.isEmpty()) return MediatorResult.Success(endOfPaginationReached = true)
+
             appDb.withTransaction {
                 when (loadType) {
                     LoadType.REFRESH -> {
-                        postDao.clear()
-                        postRemoteKeyDao.insert(
-                            listOf(
-                                PostRemoteKeyEntity(
-                                    PostRemoteKeyEntity.KeyType.AFTER,
-                                    result.first().id
-                                ),
-                                PostRemoteKeyEntity(
-                                    PostRemoteKeyEntity.KeyType.BEFORE,
-                                    result.last().id
-                                ),
+                        val maxIdInResult = result.maxByOrNull { it.id }?.id
+                        maxIdInResult?.let {
+                            postRemoteKeyDao.max()?.let{
+                                postRemoteKeyDao.insert(
+                                    PostRemoteKeyEntity(
+                                        PostRemoteKeyEntity.KeyType.AFTER,
+                                        result.first().id
+                                    )
+                                )
+                            } ?: postRemoteKeyDao.insert(
+                                listOf(
+                                    PostRemoteKeyEntity(
+                                        PostRemoteKeyEntity.KeyType.AFTER,
+                                        result.first().id
+                                    ),
+                                    PostRemoteKeyEntity(
+                                        PostRemoteKeyEntity.KeyType.BEFORE,
+                                        result.last().id
+                                    ),
+                                )
                             )
-                        )
+                        }
                     }
 
-                    LoadType.PREPEND -> {
-                        postRemoteKeyDao.insert(
-                            listOf(
-                                PostRemoteKeyEntity(
-                                    PostRemoteKeyEntity.KeyType.AFTER,
-                                    result.first().id
-                                ),
-                            )
-                        )
-                    }
+                    LoadType.PREPEND -> {} // PREPEND отключен по заданию
 
                     LoadType.APPEND -> {
                         postRemoteKeyDao.insert(
-                            listOf(
-                                PostRemoteKeyEntity(
-                                    PostRemoteKeyEntity.KeyType.BEFORE,
-                                    result.last().id
-                                ),
+                            PostRemoteKeyEntity(
+                                PostRemoteKeyEntity.KeyType.BEFORE,
+                                result.last().id
                             )
                         )
                     }
