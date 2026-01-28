@@ -1,7 +1,10 @@
 package ru.netology.nmedia.repository
 
+import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
+import androidx.paging.map
+import kotlinx.coroutines.flow.map
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import ru.netology.nmedia.api.MEDIA_URL
@@ -19,10 +22,14 @@ class PostRepositoryImpl @Inject constructor(
     private val dao: PostDao,
     private val apiService: PostApiService
 ) : PostRepository {
+    @OptIn(ExperimentalPagingApi::class)
     override val data = Pager(
         config = PagingConfig(pageSize = 10, enablePlaceholders = false),
-        pagingSourceFactory = { PostPagingSource(apiService) }
-    ).flow
+        pagingSourceFactory = { dao.getPagingSource() },
+        remoteMediator = PostRemoteMediator(apiService = apiService, postDao = dao)
+    )
+        .flow
+        .map{ it.map (PostEntity::toDto) }
 
     override fun isEmpty() = dao.isEmpty()
 
