@@ -1,6 +1,7 @@
 package ru.netology.nmedia.api
 
 import okhttp3.MultipartBody
+import retrofit2.http.Query
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.Field
@@ -16,8 +17,17 @@ import ru.netology.nmedia.dto.PushToken
 import ru.netology.nmedia.dto.Token
 
 interface PostApiService {
-    @GET("posts")
-    suspend fun getAll(): List<Post>
+    /*@GET("posts")
+    suspend fun getAll(): List<Post>*/
+
+    @GET("posts/latest")
+    suspend fun getLatest(@Query("count") count: Int): List<Post>
+
+    @GET("posts/{id}/before")
+    suspend fun getBefore(@Path("id") id: Long, @Query("count") count: Int): List<Post>
+
+    @GET("posts/{id}/after")
+    suspend fun getAfter(@Path("id") id: Long, @Query("count") count: Int): List<Post>
 
     @GET("posts/{id}")
     suspend fun getById(@Path("id") id: Long): Post
@@ -34,8 +44,8 @@ interface PostApiService {
     @DELETE("posts/{id}")
     suspend fun removeById(@Path("id") id: Long)
 
-    @GET("posts/{id}/newer")
-    suspend fun getNewer(@Path("id") id: Long): List<Post>
+    /*@GET("posts/{id}/newer")
+    suspend fun getNewer(@Path("id") id: Long): List<Post>*/
 
     @Multipart
     @POST("media")

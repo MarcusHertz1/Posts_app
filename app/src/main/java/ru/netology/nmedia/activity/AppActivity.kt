@@ -25,6 +25,7 @@ import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.FeedFragment.Companion.textArgs
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.databinding.ActivityAppBinding
+import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.viewmodel.AuthViewModel
 import javax.inject.Inject
 
@@ -37,6 +38,8 @@ class AppActivity : AppCompatActivity() {
     lateinit var googleApiAvailability: GoogleApiAvailability
     @Inject
     lateinit var appAuth: AppAuth
+    @Inject
+    lateinit var repository: PostRepository
     private val viewModel by viewModels<AuthViewModel>()
 
     override fun onCreate(savedInstanceState: Bundle?) {

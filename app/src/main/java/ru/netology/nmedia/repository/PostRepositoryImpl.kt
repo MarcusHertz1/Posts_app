@@ -1,9 +1,7 @@
 package ru.netology.nmedia.repository
 
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.map
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import ru.netology.nmedia.api.MEDIA_URL
@@ -21,9 +19,10 @@ class PostRepositoryImpl @Inject constructor(
     private val dao: PostDao,
     private val apiService: PostApiService
 ) : PostRepository {
-    override val data = dao.getAll().map {
-        it.map(PostEntity::toDto)
-    }/*.flowOn(Dispatchers.Default)*/
+    override val data = Pager(
+        config = PagingConfig(pageSize = 10, enablePlaceholders = false),
+        pagingSourceFactory = { PostPagingSource(apiService) }
+    ).flow
 
     override fun isEmpty() = dao.isEmpty()
 
@@ -34,9 +33,9 @@ class PostRepositoryImpl @Inject constructor(
 
         return try {
             val result = if (local.likedByMe) {
-               apiService.unlike(id)
+                apiService.unlike(id)
             } else {
-               apiService.like(id)
+                apiService.like(id)
             }
             dao.insert(PostEntity.fromDto(result))
             result
@@ -46,23 +45,23 @@ class PostRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getAllAsync() {
-        val posts =apiService.getAll()
+    /*override suspend fun getAllAsync() {
+        val posts = apiService.getAll()
         dao.insert(posts.map(PostEntity::fromDto))
-    }
+    }*/
 
-    override fun getNewer(id: Long): Flow<Int> = flow {
+    /*override fun getNewer(id: Long): Flow<Int> = flow {
         while (true) {
             delay(10_000)
-            val posts =apiService.getNewer(id)
+            val posts = apiService.getNewer(id)
             emit(posts.size)
         }
-    }/*.catch { e -> throw AppError.from(e) }*/
+    }*//*.catch { e -> throw AppError.from(e) }*/
 
-    override suspend fun loadNewerPosts(id: Long) {
-        val posts =apiService.getNewer(id)
+    /*override suspend fun loadNewerPosts(id: Long) {
+        val posts = apiService.getNewer(id)
         dao.insert(posts.map(PostEntity::fromDto))
-    }
+    }*/
 
     override suspend fun save(post: Post, photo: File?): Post {
         val media = photo?.let {
@@ -73,13 +72,13 @@ class PostRepositoryImpl @Inject constructor(
                 Attachment(url = it.id, type = AttachmentType.IMAGE)
             }
         )
-        val postFromServer =apiService.save(postWithAttachment)
+        val postFromServer = apiService.save(postWithAttachment)
         dao.insert(PostEntity.fromDto(postFromServer))
         return postFromServer
     }
 
     private suspend fun upload(file: File): Media =
-       apiService.upload(
+        apiService.upload(
             MultipartBody.Part.createFormData(
                 "file",
                 file.name,
@@ -119,7 +118,7 @@ class PostRepositoryImpl @Inject constructor(
         dao.removeById(id)
 
         try {
-           apiService.removeById(id)
+            apiService.removeById(id)
         } catch (e: Exception) {
             if (existing != null) {
                 dao.insert(existing)
@@ -129,7 +128,7 @@ class PostRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getById(id: Long): Post {
-        val post =apiService.getById(id)
+        val post = apiService.getById(id)
         dao.insert(PostEntity.fromDto(post))
         return post
     }

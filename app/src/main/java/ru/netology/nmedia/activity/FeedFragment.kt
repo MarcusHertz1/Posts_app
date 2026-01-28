@@ -9,11 +9,14 @@ import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.paging.LoadState
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.PostAdapter
@@ -24,11 +27,14 @@ import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.util.LongArg
 import ru.netology.nmedia.util.StringsArg
+import ru.netology.nmedia.viewmodel.AuthViewModel
 
 @AndroidEntryPoint
 class FeedFragment : Fragment() {
 
     private val viewModel: PostViewModel by activityViewModels()
+    val authViewModel: AuthViewModel by viewModels()
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -108,9 +114,10 @@ class FeedFragment : Fragment() {
 
         val errorMergeBinding = ErrorViewBinding.bind(binding.root)
 
-        viewModel.data.observe(viewLifecycleOwner) { state ->
-            adapter.submitList(state.posts)
-            binding.empty.isVisible = state.empty
+        lifecycleScope.launch {
+            viewModel.data.collectLatest { pagingData ->
+                adapter.submitData(pagingData)
+            }
         }
 
         viewModel.shouldScrollToTop.observe(viewLifecycleOwner) {
@@ -118,42 +125,37 @@ class FeedFragment : Fragment() {
                 binding.list.smoothScrollToPosition(0)
             }
         }
-
-        viewModel.newerCount.observe(viewLifecycleOwner) { count ->
-            if (count != 0) {
-                binding.newer.isVisible = true
-                binding.newer.setOnClickListener {
-                    binding.newer.isVisible = false
-                    viewModel.loadNewerPosts()
-                    binding.list.post {
-                        binding.list.smoothScrollToPosition(0)
-                    }
-                }
-            } else {
-                binding.newer.isVisible = false
-            }
-        }
-
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect { state ->
                     //binding.progress.isVisible = state.loading
                     errorMergeBinding.errorGroup.isVisible = state.error
-                    binding.swipeRefresh.isRefreshing = state.loading
                 }
+            }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            adapter.loadStateFlow.collectLatest {
+                binding.swipeRefresh.isRefreshing = it.refresh is LoadState.Loading
+                        || it.append is LoadState.Loading
+                        || it.prepend is LoadState.Loading
             }
         }
 
         binding.swipeRefresh.setOnRefreshListener {
-            viewModel.loadPosts()
+            adapter.refresh()
         }
 
         errorMergeBinding.retry.setOnClickListener {
-            viewModel.loadPosts()
+            //viewModel.loadPosts()
+            adapter.refresh()
         }
 
         binding.fab.setOnClickListener {
             findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
+        }
+
+        authViewModel.data.observe(viewLifecycleOwner) {
+            adapter.refresh()
         }
 
         return binding.root

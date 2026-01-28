@@ -4,23 +4,23 @@ import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
-import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.map
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.dto.Post
-import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.model.FeedModelState
 import ru.netology.nmedia.model.PhotoModel
 import ru.netology.nmedia.repository.PostRepository
@@ -38,18 +38,14 @@ class PostViewModel @Inject constructor(
     val state: StateFlow<FeedModelState> = _state.asStateFlow()
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val data: LiveData<FeedModel> =
-        appAuth.data.flatMapLatest { token ->
+    val data: Flow<PagingData<Post>> = appAuth.data.flatMapLatest { token ->
             repository.data
                 .map { posts ->
-                    posts.map { post ->
-                        post.copy(ownedByMe = post.authorId == token?.id)
-                    }
+                    posts.map { it.copy(ownedByMe = it.authorId == token?.id) }
                 }
-                .map { list: List<Post> -> FeedModel(list, list.isEmpty()) }
                 .catch { it.printStackTrace() }
         }
-            .asLiveData(Dispatchers.Default)
+        .flowOn(Dispatchers.Default)
 
     private val edited = MutableStateFlow(empty)
     private val _postCreated = SingleLiveEvent<Unit>()
@@ -66,27 +62,15 @@ class PostViewModel @Inject constructor(
     val photo: LiveData<PhotoModel?>
         get() = _photo
 
-    val newerCount = data.switchMap { feedModel ->
-        val rawNewerCount = repository.getNewer(feedModel.posts.firstOrNull()?.id ?: 0)
-        combine(rawNewerCount, _ignoreNewerUntil) { count, ignoreUntil ->
-            val currentTime = System.currentTimeMillis()
-            if (currentTime < ignoreUntil) {
-                0
-            } else {
-                count
-            }
-        }.asLiveData(Dispatchers.Default)
-    }
-
-    init {
+    /*init {
         loadPosts()
-    }
+    }*/
 
     fun updatePhoto(uri: Uri, file: File) {
         _photo.value = PhotoModel(uri, file)
     }
 
-    fun loadPosts() {
+    /*fun loadPosts() {
         viewModelScope.launch {
             _state.value = FeedModelState(loading = true)
             try {
@@ -96,7 +80,7 @@ class PostViewModel @Inject constructor(
                 _state.value = FeedModelState(error = true)
             }
         }
-    }
+    }*/
 
     fun like(id: Long) {
         viewModelScope.launch {
@@ -148,18 +132,6 @@ class PostViewModel @Inject constructor(
                 _ignoreNewerUntil.value = System.currentTimeMillis() + 15_000
             }
             edited.value = empty
-        }
-    }
-
-    fun loadNewerPosts() {
-        viewModelScope.launch {
-            try {
-                val firstPostId = data.value?.posts?.firstOrNull()?.id ?: 0
-                repository.loadNewerPosts(firstPostId)
-                _ignoreNewerUntil.value = System.currentTimeMillis() + 15_000
-            } catch (_: Exception) {
-                _state.value = FeedModelState(error = true)
-            }
         }
     }
 

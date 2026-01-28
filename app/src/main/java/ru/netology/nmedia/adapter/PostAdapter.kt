@@ -6,8 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.isVisible
+import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CircleCrop
@@ -34,7 +34,7 @@ class PostAdapter(
     private val formatNumber: FormatNumber,
     private val getAvatarUrl: GetAvatarUrl,
     private val getImageUrl: GetImageUrl,
-) : ListAdapter<Post, PostViewHolder>(PostDiffCallBack) {
+) : PagingDataAdapter<Post, PostViewHolder>(PostDiffCallBack) {
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
@@ -54,7 +54,7 @@ class PostAdapter(
         holder: PostViewHolder,
         position: Int
     ) {
-        val post = getItem(position)
+        val post = getItem(position) ?:return
         holder.bind(post)
     }
 }
