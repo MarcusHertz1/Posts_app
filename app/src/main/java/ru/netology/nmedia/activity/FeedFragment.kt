@@ -22,6 +22,7 @@ import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.PostAdapter
 import ru.netology.nmedia.viewmodel.PostViewModel
 import ru.netology.nmedia.adapter.OnInteractionListener
+import ru.netology.nmedia.adapter.PostLoadingStateAdapter
 import ru.netology.nmedia.databinding.ErrorViewBinding
 import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
@@ -110,7 +111,10 @@ class FeedFragment : Fragment() {
             }
         )
 
-        binding.list.adapter = adapter
+        binding.list.adapter = adapter.withLoadStateHeaderAndFooter(
+            header = PostLoadingStateAdapter { adapter.retry() },
+            footer = PostLoadingStateAdapter { adapter.retry() },
+        )
 
         val errorMergeBinding = ErrorViewBinding.bind(binding.root)
 
