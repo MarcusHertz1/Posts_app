@@ -62,15 +62,15 @@ class PostViewModel @Inject constructor(
     val photo: LiveData<PhotoModel?>
         get() = _photo
 
-    init {
+    /*init {
         loadPosts()
-    }
+    }*/
 
     fun updatePhoto(uri: Uri, file: File) {
         _photo.value = PhotoModel(uri, file)
     }
 
-    fun loadPosts() {
+    /*fun loadPosts() {
         viewModelScope.launch {
             _state.value = FeedModelState(loading = true)
             try {
@@ -80,7 +80,7 @@ class PostViewModel @Inject constructor(
                 _state.value = FeedModelState(error = true)
             }
         }
-    }
+    }*/
 
     fun like(id: Long) {
         viewModelScope.launch {

@@ -9,6 +9,7 @@ import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -26,11 +27,14 @@ import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.util.LongArg
 import ru.netology.nmedia.util.StringsArg
+import ru.netology.nmedia.viewmodel.AuthViewModel
 
 @AndroidEntryPoint
 class FeedFragment : Fragment() {
 
     private val viewModel: PostViewModel by activityViewModels()
+    val authViewModel: AuthViewModel by viewModels()
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -142,11 +146,16 @@ class FeedFragment : Fragment() {
         }
 
         errorMergeBinding.retry.setOnClickListener {
-            viewModel.loadPosts()
+            //viewModel.loadPosts()
+            adapter.refresh()
         }
 
         binding.fab.setOnClickListener {
             findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
+        }
+
+        authViewModel.data.observe(viewLifecycleOwner) {
+            adapter.refresh()
         }
 
         return binding.root

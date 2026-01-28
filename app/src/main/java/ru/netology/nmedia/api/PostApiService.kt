@@ -17,8 +17,8 @@ import ru.netology.nmedia.dto.PushToken
 import ru.netology.nmedia.dto.Token
 
 interface PostApiService {
-    @GET("posts")
-    suspend fun getAll(): List<Post>
+    /*@GET("posts")
+    suspend fun getAll(): List<Post>*/
 
     @GET("posts/latest")
     suspend fun getLatest(@Query("count") count: Int): List<Post>
@@ -44,8 +44,8 @@ interface PostApiService {
     @DELETE("posts/{id}")
     suspend fun removeById(@Path("id") id: Long)
 
-    @GET("posts/{id}/newer")
-    suspend fun getNewer(@Path("id") id: Long): List<Post>
+    /*@GET("posts/{id}/newer")
+    suspend fun getNewer(@Path("id") id: Long): List<Post>*/
 
     @Multipart
     @POST("media")

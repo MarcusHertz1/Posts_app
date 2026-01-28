@@ -2,10 +2,6 @@ package ru.netology.nmedia.repository
 
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.lastOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import ru.netology.nmedia.api.MEDIA_URL
@@ -49,26 +45,23 @@ class PostRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getAllAsync() {
-        val cashedPosts = dao.getAll().lastOrNull()
-        if (cashedPosts.isNullOrEmpty()) {
-            val posts = apiService.getAll()
-            dao.insert(posts.map(PostEntity::fromDto))
-        }
-    }
+    /*override suspend fun getAllAsync() {
+        val posts = apiService.getAll()
+        dao.insert(posts.map(PostEntity::fromDto))
+    }*/
 
-    override fun getNewer(id: Long): Flow<Int> = flow {
+    /*override fun getNewer(id: Long): Flow<Int> = flow {
         while (true) {
             delay(10_000)
             val posts = apiService.getNewer(id)
             emit(posts.size)
         }
-    }/*.catch { e -> throw AppError.from(e) }*/
+    }*//*.catch { e -> throw AppError.from(e) }*/
 
-    override suspend fun loadNewerPosts(id: Long) {
+    /*override suspend fun loadNewerPosts(id: Long) {
         val posts = apiService.getNewer(id)
         dao.insert(posts.map(PostEntity::fromDto))
-    }
+    }*/
 
     override suspend fun save(post: Post, photo: File?): Post {
         val media = photo?.let {
@@ -132,10 +125,6 @@ class PostRepositoryImpl @Inject constructor(
             }
             throw e
         }
-    }
-
-    override suspend fun removeAllLocal(){
-        dao.removeAll()
     }
 
     override suspend fun getById(id: Long): Post {
