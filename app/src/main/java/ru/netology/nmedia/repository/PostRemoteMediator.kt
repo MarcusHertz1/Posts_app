@@ -4,23 +4,32 @@ import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
+import androidx.room.withTransaction
 import okio.IOException
 import ru.netology.nmedia.api.PostApiService
 import ru.netology.nmedia.dao.PostDao
+import ru.netology.nmedia.dao.PostRemoteKeyDao
+import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.entity.PostEntity
+import ru.netology.nmedia.entity.PostRemoteKeyEntity
 
 @OptIn(ExperimentalPagingApi::class)
 class PostRemoteMediator(
     private val apiService: PostApiService,
     private val postDao: PostDao,
+    private val postRemoteKeyDao: PostRemoteKeyDao,
+    private val appDb: AppDb
 ) : RemoteMediator<Int, PostEntity>() {
 
-    override suspend fun load(loadType: LoadType, state: PagingState<Int, PostEntity>): MediatorResult {
+    override suspend fun load(
+        loadType: LoadType,
+        state: PagingState<Int, PostEntity>
+    ): MediatorResult {
         try {
             val result = when (loadType) {
                 LoadType.REFRESH -> apiService.getLatest(state.config.pageSize)
                 LoadType.PREPEND -> {
-                    val id = state.firstItemOrNull()?.id ?: return MediatorResult.Success(
+                    val id = postRemoteKeyDao.max() ?: return MediatorResult.Success(
                         endOfPaginationReached = false
                     )
                     apiService.getAfter(
@@ -30,13 +39,55 @@ class PostRemoteMediator(
                 }
 
                 LoadType.APPEND -> {
-                    val id = state.lastItemOrNull()?.id ?: return MediatorResult.Success(
+                    val id = postRemoteKeyDao.min() ?: return MediatorResult.Success(
                         endOfPaginationReached = false
                     )
                     apiService.getBefore(
                         id = id,
                         count = state.config.pageSize
                     )
+                }
+            }
+
+            appDb.withTransaction {
+                when (loadType) {
+                    LoadType.REFRESH -> {
+                        postDao.clear()
+                        postRemoteKeyDao.insert(
+                            listOf(
+                                PostRemoteKeyEntity(
+                                    PostRemoteKeyEntity.KeyType.AFTER,
+                                    result.first().id
+                                ),
+                                PostRemoteKeyEntity(
+                                    PostRemoteKeyEntity.KeyType.BEFORE,
+                                    result.last().id
+                                ),
+                            )
+                        )
+                    }
+
+                    LoadType.PREPEND -> {
+                        postRemoteKeyDao.insert(
+                            listOf(
+                                PostRemoteKeyEntity(
+                                    PostRemoteKeyEntity.KeyType.AFTER,
+                                    result.first().id
+                                ),
+                            )
+                        )
+                    }
+
+                    LoadType.APPEND -> {
+                        postRemoteKeyDao.insert(
+                            listOf(
+                                PostRemoteKeyEntity(
+                                    PostRemoteKeyEntity.KeyType.BEFORE,
+                                    result.last().id
+                                ),
+                            )
+                        )
+                    }
                 }
             }
 
