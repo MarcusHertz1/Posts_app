@@ -20,7 +20,7 @@ import javax.inject.Singleton
 @Module
 class ApiModule {
     companion object {
-        private const val BASE_URL = "http://10.0.2.2:9999/api/"
+       const val BASE_URL = "http://10.0.2.2:9999/api/"
     }
 
     private val errorInterceptor = Interceptor { chain ->
