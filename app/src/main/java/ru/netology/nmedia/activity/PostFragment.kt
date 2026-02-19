@@ -96,9 +96,9 @@ class PostFragment : Fragment() {
         lifecycleScope.launch {
             var searchingPost: Post? = null
             viewModel.data.collectLatest { pagingData ->
-                pagingData.map { post ->
-                    if (post.id == postId) searchingPost = post
-                    post
+                pagingData.map { item ->
+                    if (item.id == postId && item is Post) searchingPost = item
+                    item
                 }
             }
             searchingPost?.let { holder.bind(it) }
